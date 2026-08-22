@@ -1,0 +1,2 @@
+Inventory Buttons are now fully hidden and non-interactive while Storage Preview is active.
+Invisible buttons can no longer run commands behind Storage, Ender Chest, or Backpack previews.

@@ -1,0 +1,32 @@
+{
+	"required": true,
+	"package": "name.skyveil.client.mixin",
+	"compatibilityLevel": "JAVA_25",
+	"client": [
+		"CameraMixin",
+		"MouseHandlerMixin",
+		"AbstractContainerScreenMixin",
+		"AbstractRecipeBookScreenMixin",
+		"LocalPlayerMixin",
+		"ClientCommonPacketListenerMixin",
+		"ClientPacketListenerMixin",
+		"ContainerScreenAccessor",
+		"ContainerScreenMixin",
+		"GuiMixin",
+		"KeyboardHandlerMixin",
+		"GuiGraphicsExtractorMixin",
+		"DefaultTooltipPositionerMixin",
+		"ScreenMixin",
+		"ScreenWidgetAccessor",
+		"InventoryScreenMixin",
+		"ClientLevelEntityMixin",
+		"EntityDataMixin",
+		"EntityRendererMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	},
+	"overwrites": {
+		"requireAnnotations": true
+	}
+}

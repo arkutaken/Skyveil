@@ -1,0 +1,37 @@
+{
+	"schemaVersion": 1,
+	"id": "skyveil",
+	"version": "${version}",
+	"name": "Skyveil",
+	"description": "Client-side quality-of-life features for Hypixel SkyBlock.",
+	"authors": [
+		"marku"
+	],
+	"license": "CC0-1.0",
+	"icon": "assets/skyveil/icon.png.png",
+	"environment": "client",
+	"entrypoints": {
+		"main": [
+			{
+				"value": "name.skyveil.Skyveil",
+				"adapter": "kotlin"
+			}
+		],
+		"client": [
+			"name.skyveil.client.SkyveilClientEntrypoint"
+		]
+	},
+	"mixins": [
+		{
+			"config": "skyveil.client.mixins.json",
+			"environment": "client"
+		}
+	],
+	"depends": {
+		"fabricloader": ">=0.19.3",
+		"minecraft": "~26.1.2",
+		"java": ">=25",
+		"fabric-api": "*",
+		"fabric-language-kotlin": "*"
+	}
+}

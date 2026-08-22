@@ -1,0 +1,14 @@
+Skyveil generated island maps
+==============================
+
+Source: Hypixel SkyBlock World Downloads for every single island
+Forum author/download creator: KimiD2007
+Forum: https://hypixel.net/threads/hypixel-skyblock-world-downloads-for-every-single-island.5140617/
+Generated: 2026-08-11 using tools/map-generator/src/SkyveilMapGenerator.java
+
+Converted fixed downloads: Hub, Gold Mine, Deep Caverns, Dwarven Mines,
+The Park, Spider's Den, The End, Crimson Isle, Farming Islands, Dungeon Hub.
+
+Raw world downloads are not included in Skyveil. The forum post does not state
+an explicit redistribution license; obtain permission before public release.
+See MAP_SOURCES.md in the source distribution for hashes and generation details.

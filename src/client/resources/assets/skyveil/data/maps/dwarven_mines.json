@@ -1,0 +1,8 @@
+{
+  "id":"dwarven_mines","displayName":"Dwarven Mines","texture":"skyveil:textures/maps/dwarven_mines.png",
+  "attribution":"World download by KimiD2007 via Hypixel Forums; generated with the enclosing stone shell omitted",
+  "imageWidth":522,"imageHeight":469,"minX":-214,"maxX":308,"minZ":-179,"maxZ":290,
+  "orientation":"north=-Z, image top=minZ; east=+X, image right=maxX","pixelsPerBlock":1,
+  "sourceWorldDownload":"https://www.mediafire.com/file/srryyljgbo8r6mz/The_Dwarven_Mines.zip/file",
+  "aliases":["area: dwarven mines","area: dwarven village","area: the lift","area: royal palace","area: royal mines","area: lava springs","area: cliffside veins","area: rampart's quarry","area: upper mines","area: goblin burrows","area: great ice wall","area: the mist","area: divan's gateway","area: far reserve","area: miner's guild","area: forge basin","area: the forge","area: palace bridge","area: aristocrat passage","area: hanging court","area: royal quarters","area: grand library","area: barracks of heroes","area: dwarven tavern"],"npcs":[],"zones":[]
+}

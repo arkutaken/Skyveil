@@ -1,5 +1,6 @@
 package name.skyveil.client.mixin;
 
+import name.skyveil.client.SkyblockSession;
 import name.skyveil.client.combat.CompactDamageManager;
 import net.minecraft.client.renderer.entity.ArmorStandRenderer;
 import net.minecraft.client.renderer.entity.state.ArmorStandRenderState;
@@ -13,5 +14,5 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(ArmorStandRenderer.class)
 public abstract class EntityRendererMixin {
     @Inject(method="extractRenderState(Lnet/minecraft/world/entity/decoration/ArmorStand;Lnet/minecraft/client/renderer/entity/state/ArmorStandRenderState;F)V",at=@At("TAIL"))
-    private void skyveil$compactDamageLabel(ArmorStand stand,ArmorStandRenderState state,float partialTick,CallbackInfo ci){if(CompactDamageManager.shouldSuppress(stand))state.nameTag=null;}
+    private void skyveil$compactDamageLabel(ArmorStand stand,ArmorStandRenderState state,float partialTick,CallbackInfo ci){if(SkyblockSession.isActive()&&CompactDamageManager.shouldSuppress(stand))state.nameTag=null;}
 }

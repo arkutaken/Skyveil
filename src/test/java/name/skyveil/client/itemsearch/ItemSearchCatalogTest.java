@@ -18,6 +18,13 @@ class ItemSearchCatalogTest {
         var modeled=ItemSearchCatalog.search("abiphone x red").getFirst();assertEquals("hypixel_skyblock:item/abiphones/x/abiphone_x_red",modeled.modelId());assertTrue(modeled.loreLines()>0);
     }
 
+    @Test void exactInternalIdLookupFindsModeledPetItems(){
+        var clover=ItemSearchCatalog.entryByInternalName("pet_item_lucky_clover");
+        assertNotNull(clover);assertEquals("PET_ITEM_LUCKY_CLOVER",clover.internalName());
+        assertFalse(clover.modelId().isBlank());
+        assertNull(ItemSearchCatalog.entryByInternalName("PET_ITEM_NOT_REAL"));
+    }
+
     @Test void catalogTooltipTextIsNeverImplicitlyItalic(){
         var component=ItemSearchCatalog.legacy("§7Damage: §c+310");
         assertFalse(component.getSiblings().isEmpty());

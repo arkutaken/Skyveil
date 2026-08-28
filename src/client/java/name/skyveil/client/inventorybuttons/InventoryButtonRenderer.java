@@ -54,6 +54,6 @@ public final class InventoryButtonRenderer {
 
     private static void drawIcon(GuiGraphicsExtractor graphics,net.minecraft.world.item.ItemStack stack,InventoryButtonPosition.Rect rect){
         float scale=Math.min(1.25f,rect.size()/20.0f);int rendered=Math.round(16*scale),x=rect.x()+(rect.size()-rendered)/2,y=rect.y()+(rect.size()-rendered)/2;
-        graphics.pose().pushMatrix();graphics.pose().scale(scale,scale);graphics.item(stack,Math.round(x/scale),Math.round(y/scale));graphics.pose().popMatrix();
+        graphics.pose().pushMatrix();try{graphics.pose().scale(scale,scale);graphics.item(stack,Math.round(x/scale),Math.round(y/scale));}finally{graphics.pose().popMatrix();}
     }
 }

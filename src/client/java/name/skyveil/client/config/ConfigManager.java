@@ -57,14 +57,15 @@ public final class ConfigManager {
         return config.darkMode==null || config.storagePreviewTheme==null || "DARKISH_PURPLE".equals(config.darkMode) || "Darkish Purple".equals(config.darkMode)
             || config.zoom == null || config.bestiary == null || config.hunting == null
             || config.itemProtection == null || config.itemProtection.slotLinks == null || config.itemRarity == null || config.inventoryButtons == null
-            || config.customKeybinds == null || config.wardrobe == null || config.petDisplay == null || config.map == null || config.lockedInventorySlots == null
-            || config.inventoryButtons.buttons == null || config.customKeybinds.bindings == null;
+            || config.customKeybinds == null || config.chatCopy == null || config.wardrobe == null || config.petDisplay == null || config.lockedInventorySlots == null
+            || config.inventoryButtons.buttons == null || config.customKeybinds.bindings == null || config.chatCopy.binding == null || config.petDisplay.style == null;
     }
 
     private static void validate() {
         if("DARKISH_PURPLE".equals(config.darkMode)||"Darkish Purple".equals(config.darkMode))config.darkMode="DARK_PURPLE";
         if(!"DEFAULT".equals(config.darkMode)&&!"DARK".equals(config.darkMode)&&!"DARK_PURPLE".equals(config.darkMode))config.darkMode="DEFAULT";
         if(!"DEFAULT".equals(config.storagePreviewTheme)&&!"DARK".equals(config.storagePreviewTheme)&&!"DARK_PURPLE".equals(config.storagePreviewTheme))config.storagePreviewTheme="DARK_PURPLE";
+        if(!"NEON".equals(config.compactDamageStyle)&&!"CRIMSON".equals(config.compactDamageStyle)&&!"MINIMAL".equals(config.compactDamageStyle))config.compactDamageStyle="MINIMAL";
         if (config.zoom == null) config.zoom = new SkyveilConfig.Zoom();
         if (config.bestiary == null) config.bestiary = new SkyveilConfig.Bestiary();
         if (config.hunting == null) config.hunting = new SkyveilConfig.Hunting();
@@ -76,9 +77,11 @@ public final class ConfigManager {
         if (config.inventoryButtons.buttons == null) config.inventoryButtons.buttons = new java.util.ArrayList<>();
         if (config.customKeybinds == null) config.customKeybinds = new SkyveilConfig.CustomKeybinds();
         if (config.customKeybinds.bindings == null) config.customKeybinds.bindings = new java.util.ArrayList<>();
+        if (config.chatCopy == null) config.chatCopy = new SkyveilConfig.ChatCopy();
+        config.chatCopy.binding=name.skyveil.client.chatcopy.ChatCopyManager.normalize(config.chatCopy.binding);
         if (config.wardrobe == null) config.wardrobe = new SkyveilConfig.Wardrobe();
         if (config.petDisplay == null) config.petDisplay = new SkyveilConfig.PetDisplay();
-        if (config.map == null) config.map = new SkyveilConfig.MapSettings();
+        if(!"PANEL".equals(config.petDisplay.style)&&!"MINIMAL".equals(config.petDisplay.style))config.petDisplay.style="PANEL";
         if (config.lockedInventorySlots == null) config.lockedInventorySlots = new java.util.HashSet<>();
         config.lockedInventorySlots.removeIf(slot -> slot == null || slot < 0 || slot > 40);
         java.util.LinkedHashMap<Integer,java.util.List<Integer>> sanitizedLinks=new java.util.LinkedHashMap<>();
@@ -96,15 +99,6 @@ public final class ConfigManager {
         config.petDisplay.hudY=Math.max(0,config.petDisplay.hudY);
         config.petDisplay.scale=Math.max(.5,Math.min(2.0,config.petDisplay.scale));
         config.petDisplay.backgroundOpacity=Math.max(0,Math.min(1.0,config.petDisplay.backgroundOpacity));
-        config.map.minimapX=Math.max(-1,config.map.minimapX);
-        config.map.minimapY=Math.max(0,config.map.minimapY);
-        config.map.minimapSize=Math.max(80.0,Math.min(220.0,config.map.minimapSize));
-        config.map.minimapScale=Math.max(.5,Math.min(2.0,config.map.minimapScale));
-        config.map.minimapZoom=Math.max(1.0,Math.min(8.0,config.map.minimapZoom));
-        config.map.minimapOpacity=Math.max(.20,Math.min(1.0,config.map.minimapOpacity));
-        config.map.largeMapScale=Math.max(.50,Math.min(1.0,config.map.largeMapScale));
-        config.map.npcMarkerSize=Math.max(8.0,Math.min(20.0,config.map.npcMarkerSize));
-        config.map.playerMarkerSize=Math.max(8.0,Math.min(20.0,config.map.playerMarkerSize));
     }
 
     private static boolean migrate() {
@@ -122,6 +116,16 @@ public final class ConfigManager {
         if(config.version<18){config.storagePreview=true;config.version=18;changed=true;}
         if(config.version<19){config.storagePreviewTheme=config.darkMode;config.version=19;changed=true;}
         if(config.version<20){config.inventoryButtons.showInContainers=true;config.version=20;changed=true;}
+        if(config.version<21){config.version=21;changed=true;}
+        if(config.version<22){config.compactDamageStyle="CLASSIC";config.version=22;changed=true;}
+        if(config.version<23){if("CLASSIC".equals(config.compactDamageStyle))config.compactDamageStyle="MINIMAL";config.petDisplay.style="PANEL";config.version=23;changed=true;}
+        if(config.version<24){if("NEON".equals(config.petDisplay.style))config.petDisplay.style="COSMIC";else if("GLASS".equals(config.petDisplay.style))config.petDisplay.style="RUNIC";config.version=24;changed=true;}
+        if(config.version<25){if(!"MINIMAL".equals(config.petDisplay.style))config.petDisplay.style="PANEL";config.version=25;changed=true;}
+        if(config.version<26){config.version=26;changed=true;}
+        if(config.version<27){config.version=27;changed=true;}
+        if(config.version<28){config.version=28;changed=true;}
+        if(config.version<29){if("VOID".equals(config.compactDamageStyle))config.compactDamageStyle="MINIMAL";config.version=29;changed=true;}
+        if(config.version<30){config.version=30;changed=true;}
         return changed;
     }
 
@@ -133,7 +137,7 @@ public final class ConfigManager {
     static boolean migrateLegacyTree(JsonElement tree){
         if(tree==null||!tree.isJsonObject())return false;
         boolean changed=false;JsonObject root=tree.getAsJsonObject();
-        for(String key:new String[]{"trophyFishing","bobberTimer","baitSack","fishingNavigation","seaCreatures","itemPrices","trophyDiamondCaught","trophyTierCounts","trophyTotalCounts"})
+        for(String key:new String[]{"trophyFishing","bobberTimer","baitSack","fishingNavigation","seaCreatures","itemPrices","trophyDiamondCaught","trophyTierCounts","trophyTotalCounts","map"})
             if(root.remove(key)!=null)changed=true;
         JsonElement protectionElement=root.get("itemProtection");
         if(protectionElement!=null&&protectionElement.isJsonObject()){
@@ -156,6 +160,18 @@ public final class ConfigManager {
             }
             String[] dead={"style","opacity","outlineOpacity","outlineThickness","common","uncommon","rare","epic","legendary","mythic","divine","special","verySpecial","supreme","ultimate","admin"};
             for(String key:dead)if(rarity.remove(key)!=null)changed=true;
+        }
+        JsonElement chatCopyElement=root.get("chatCopy");
+        if(chatCopyElement!=null&&chatCopyElement.isJsonObject()){
+            JsonObject chatCopy=chatCopyElement.getAsJsonObject();JsonObject binding=null;JsonElement current=chatCopy.get("binding");if(current!=null&&current.isJsonObject())binding=current.getAsJsonObject();
+            JsonElement bindings=chatCopy.get("bindings");if(binding==null&&bindings!=null&&bindings.isJsonArray()&&!bindings.getAsJsonArray().isEmpty()&&bindings.getAsJsonArray().get(0).isJsonObject()){binding=bindings.getAsJsonArray().get(0).getAsJsonObject().deepCopy();chatCopy.add("binding",binding);changed=true;}
+            if(chatCopy.remove("bindings")!=null)changed=true;
+            if(binding!=null&&!binding.has("keys")){com.google.gson.JsonArray keys=new com.google.gson.JsonArray();
+                if(binding.has("control")&&binding.get("control").getAsBoolean())keys.add(org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT_CONTROL);
+                if(binding.has("shift")&&binding.get("shift").getAsBoolean())keys.add(org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT_SHIFT);
+                if(binding.has("alt")&&binding.get("alt").getAsBoolean())keys.add(org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT_ALT);
+                if(binding.has("heldKey")){int key=binding.get("heldKey").getAsInt();if(key!=org.lwjgl.glfw.GLFW.GLFW_KEY_UNKNOWN)keys.add(key);}binding.add("keys",keys);binding.remove("control");binding.remove("shift");binding.remove("alt");binding.remove("heldKey");changed=true;
+            }
         }
         return changed;
     }

@@ -1,11 +1,14 @@
 package name.skyveil.client.mixin;
 
+import name.skyveil.client.SkyblockSession;
 import name.skyveil.client.bestiary.BestiaryChatFilter;
 import name.skyveil.client.pet.AutoPetRuleMessageFilter;
 import name.skyveil.client.pet.PetTracker;
 import name.skyveil.client.hunting.AttributeMenuPanel;
 import name.skyveil.client.hunting.AttributeSyphonChatTracker;
 import name.skyveil.client.hunting.HuntingBoxValuePanel;
+import name.skyveil.client.storage.StoragePreviewManager;
+import name.skyveil.client.equipment.EquipmentShortcutRow;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.network.protocol.game.ClientboundContainerSetContentPacket;
 import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
@@ -32,6 +35,7 @@ public abstract class ClientPacketListenerMixin {
         cancellable=true
     )
     private void skyveil$filterSystemMessages(ClientboundSystemChatPacket packet,CallbackInfo ci){
+        if(!SkyblockSession.isActive())return;
         // Tracking runs before either filter, so hiding the Autopet line cannot delay pet state.
         PetTracker.onSystemMessage(packet.content(),packet.overlay());
         AttributeSyphonChatTracker.onSystemMessage(packet.content(),packet.overlay());
@@ -40,20 +44,20 @@ public abstract class ClientPacketListenerMixin {
     }
 
     @Inject(method="handlePlayerInfoUpdate",at=@At("TAIL"))
-    private void skyveil$playerInfoUpdated(ClientboundPlayerInfoUpdatePacket packet,CallbackInfo ci){PetTracker.onTabListPacket("PLAYER_INFO_UPDATE");}
+    private void skyveil$playerInfoUpdated(ClientboundPlayerInfoUpdatePacket packet,CallbackInfo ci){if(SkyblockSession.isActive())PetTracker.onTabListPacket("PLAYER_INFO_UPDATE");}
 
     @Inject(method="handlePlayerInfoRemove",at=@At("TAIL"))
-    private void skyveil$playerInfoRemoved(ClientboundPlayerInfoRemovePacket packet,CallbackInfo ci){PetTracker.onTabListPacket("PLAYER_INFO_REMOVE");}
+    private void skyveil$playerInfoRemoved(ClientboundPlayerInfoRemovePacket packet,CallbackInfo ci){if(SkyblockSession.isActive())PetTracker.onTabListPacket("PLAYER_INFO_REMOVE");}
 
     @Inject(method="handleSetPlayerTeamPacket",at=@At("TAIL"))
-    private void skyveil$playerTeamUpdated(ClientboundSetPlayerTeamPacket packet,CallbackInfo ci){PetTracker.onTabListPacket("PLAYER_TEAM");}
+    private void skyveil$playerTeamUpdated(ClientboundSetPlayerTeamPacket packet,CallbackInfo ci){if(SkyblockSession.isActive())PetTracker.onTabListPacket("PLAYER_TEAM");}
 
     @Inject(method="handleTabListCustomisation",at=@At("TAIL"))
-    private void skyveil$tabListUpdated(ClientboundTabListPacket packet,CallbackInfo ci){PetTracker.onTabListPacket("TAB_HEADER_FOOTER");}
+    private void skyveil$tabListUpdated(ClientboundTabListPacket packet,CallbackInfo ci){if(SkyblockSession.isActive())PetTracker.onTabListPacket("TAB_HEADER_FOOTER");}
 
     @Inject(method="handleContainerSetSlot",at=@At("TAIL"))
-    private void skyveil$containerSlotUpdate(ClientboundContainerSetSlotPacket packet,CallbackInfo ci){PetTracker.onContainerPacket(packet.getContainerId(),"SET_SLOT");AttributeMenuPanel.onContainerUpdate(packet.getContainerId());HuntingBoxValuePanel.onContainerUpdate(packet.getContainerId());}
+    private void skyveil$containerSlotUpdate(ClientboundContainerSetSlotPacket packet,CallbackInfo ci){if(!SkyblockSession.isActive())return;PetTracker.onContainerPacket(packet.getContainerId(),"SET_SLOT");AttributeMenuPanel.onContainerUpdate(packet.getContainerId());HuntingBoxValuePanel.onContainerUpdate(packet.getContainerId());StoragePreviewManager.onContainerUpdate(packet.getContainerId());EquipmentShortcutRow.onContainerUpdate(packet.getContainerId());}
 
     @Inject(method="handleContainerContent",at=@At("TAIL"))
-    private void skyveil$containerContentUpdate(ClientboundContainerSetContentPacket packet,CallbackInfo ci){PetTracker.onContainerPacket(packet.containerId(),"SET_CONTENT");AttributeMenuPanel.onContainerUpdate(packet.containerId());HuntingBoxValuePanel.onContainerUpdate(packet.containerId());}
+    private void skyveil$containerContentUpdate(ClientboundContainerSetContentPacket packet,CallbackInfo ci){if(!SkyblockSession.isActive())return;PetTracker.onContainerPacket(packet.containerId(),"SET_CONTENT");AttributeMenuPanel.onContainerUpdate(packet.containerId());HuntingBoxValuePanel.onContainerUpdate(packet.containerId());StoragePreviewManager.onContainerUpdate(packet.containerId());EquipmentShortcutRow.onContainerUpdate(packet.containerId());}
 }

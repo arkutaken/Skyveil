@@ -5,10 +5,10 @@ import net.minecraft.network.chat.Component;
 
 import java.util.regex.Pattern;
 
-/** Suppresses only Hypixel's observed Autopet equipped notification. */
+/** Suppresses Hypixel's Autopet equip notification across its observed text variants. */
 public final class AutoPetRuleMessageFilter {
     private static final Pattern MESSAGE=Pattern.compile(
-        "(?i)^Autopet\\s+equipped\\s+your\\s+\\[\\s*Lvl\\s+\\d{1,4}\\s*]\\s+.+!\\s+VIEW\\s+RULE$");
+        "(?i)(?:^|\\s)auto\\s*pet\\b.{0,180}\\bequipped\\s+your\\b");
 
     private AutoPetRuleMessageFilter() {}
 
@@ -18,6 +18,8 @@ public final class AutoPetRuleMessageFilter {
 
     static boolean shouldSuppressText(String text,boolean overlay,boolean enabled){return enabled&&!overlay&&matchesText(text);}
     static boolean matchesText(String text){
-        return text!=null&&MESSAGE.matcher(text.trim().replaceAll("\\s+"," ")).matches();
+        if(text==null)return false;
+        String normalized=text.replaceAll("(?:\\u00c2)?\\u00a7.","").replace('\u00a0',' ').replaceAll("[\\u200B-\\u200D\\uFEFF]","").trim().replaceAll("\\s+"," ");
+        return MESSAGE.matcher(normalized).find();
     }
 }

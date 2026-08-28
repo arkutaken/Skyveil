@@ -2,6 +2,8 @@ package name.skyveil.client;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import name.skyveil.client.config.ConfigManager;
+import name.skyveil.client.cache.SkyveilCacheManager;
+import name.skyveil.client.equipment.EquipmentShortcutRow;
 import name.skyveil.client.config.SettingsRegistry;
 import name.skyveil.client.gui.SkyveilConfigScreen;
 import name.skyveil.client.gui.SearchManager;
@@ -13,6 +15,8 @@ import name.skyveil.client.bestiary.BestiaryChatFilter;
 import name.skyveil.client.combat.CompactDamageManager;
 import name.skyveil.client.combat.CompactDamageRenderer;
 import name.skyveil.client.hunting.AttributeMenuPanel;
+import name.skyveil.client.hunting.AttributeProgressStore;
+import name.skyveil.client.hunting.HuntingBoxValuePanel;
 import name.skyveil.client.hunting.ShardPriceService;
 import name.skyveil.client.pet.PetDisplayHud;
 import name.skyveil.client.pet.PetTracker;
@@ -21,18 +25,12 @@ import name.skyveil.client.update.ReleaseNoticeManager;
 import name.skyveil.client.update.GitHubUpdateManager;
 import name.skyveil.client.zoom.ZoomManager;
 import name.skyveil.client.storage.StoragePreviewManager;
-import name.skyveil.client.map.LargeMapScreen;
-import name.skyveil.client.map.MapManager;
-import name.skyveil.client.map.MapMarkerManager;
-import name.skyveil.client.map.MapTextureManager;
-import name.skyveil.client.map.MinimapHud;
-import name.skyveil.client.map.NpcSkinCache;
-import name.skyveil.client.map.SkyblockMapRegistry;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.network.chat.Component;
 import org.lwjgl.glfw.GLFW;
@@ -42,8 +40,6 @@ import org.slf4j.LoggerFactory;
 public final class SkyveilClientEntrypoint implements ClientModInitializer {
     private static final Logger LOGGER=LoggerFactory.getLogger("skyveil-client");
     private static KeyMapping openMenu;
-    private static KeyMapping openLargeMap;
-    private static int configuredMapKey;
     private static volatile boolean menuOpenRequested;
     private static boolean initialized;
     @Override public void onInitializeClient() {
@@ -51,26 +47,25 @@ public final class SkyveilClientEntrypoint implements ClientModInitializer {
         initialized=true;
         long started=System.nanoTime();
         LOGGER.info("Skyveil client initialization started");
-        ConfigManager.load();ShardPriceService.initialize();ReleaseNoticeManager.initialize();GitHubUpdateManager.initialize();LOGGER.info("Skyveil configuration loaded");
+        ConfigManager.load();SkyveilCacheManager.initialize();AttributeProgressStore.initialize();ShardPriceService.initialize();ReleaseNoticeManager.initialize();GitHubUpdateManager.initialize();LOGGER.info("Skyveil configuration and runtime cache loading started");
         SettingsRegistry.registerDefaults();SearchManager.initialize();
-        SkyblockMapRegistry.load();MapTextureManager.initialize();MapMarkerManager.load();
         InventoryButtonManager.initialize();CustomKeybindManager.initialize();
         LOGGER.info("Skyveil reusable infrastructure initialized before gameplay");
-        CompactDamageRenderer.register();MinimapHud.register();PetDisplayHud.register();
+        CompactDamageRenderer.register();PetDisplayHud.register();
         LOGGER.info("Skyveil HUD features registered");
-        ClientLifecycleEvents.CLIENT_STOPPING.register(client->{StoragePreviewManager.shutdown(client);ConfigManager.shutdown();});
+        ClientLifecycleEvents.CLIENT_STOPPING.register(client->{StoragePreviewManager.shutdown(client);EquipmentShortcutRow.shutdown(client);PetTracker.shutdown(client);AttributeProgressStore.flush();ShardPriceService.flush();SkyveilCacheManager.shutdown();ConfigManager.shutdown();});
+        ClientPlayConnectionEvents.DISCONNECT.register((handler,client)->{SkyblockSession.disconnect();StoragePreviewManager.disconnect(client);EquipmentShortcutRow.disconnect(client);PetTracker.disconnect(client);CompactDamageManager.clear();});
         KeyMapping.Category category=KeyMapping.Category.register(name.skyveil.Skyveil.INSTANCE.id("keybindings"));
         // In 26.1.2 KeyMapping registers itself; Fabric's former helper is no longer present.
         openMenu=new KeyMapping("key.skyveil.open_menu",InputConstants.Type.KEYSYM,GLFW.GLFW_KEY_RIGHT_SHIFT,category);
         ZoomManager.initialize(category);
-        configuredMapKey=ConfigManager.get().map.largeMapKey;
-        openLargeMap=new KeyMapping("key.skyveil.open_large_map",InputConstants.Type.KEYSYM,configuredMapKey,category);
         ClientTickEvents.END_CLIENT_TICK.register(client->{
-            MapManager.tick(client);NpcSkinCache.tick(client);CompactDamageManager.tick(client);ZoomManager.tick();PetTracker.tick(client);StoragePreviewManager.tick(client);ItemProtectionInputHandler.tick(client);CustomKeybindInputHandler.tick(client);WardrobeKeybindHandler.tick(client);BestiaryChatFilter.tick(client);ReleaseNoticeManager.tick(client);GitHubUpdateManager.tick(client);
-            if(configuredMapKey!=ConfigManager.get().map.largeMapKey){configuredMapKey=ConfigManager.get().map.largeMapKey;openLargeMap.setKey(InputConstants.Type.KEYSYM.getOrCreate(configuredMapKey));KeyMapping.resetMapping();}
+            SkyblockSession.tick(client);ZoomManager.tick();PetTracker.tick(client);
+            if(SkyblockSession.isActive()){
+                CompactDamageManager.tick(client);StoragePreviewManager.tick(client);EquipmentShortcutRow.tick(client);AttributeMenuPanel.tick(client);HuntingBoxValuePanel.tick();ItemProtectionInputHandler.tick(client);CustomKeybindInputHandler.tick(client);WardrobeKeybindHandler.tick(client);BestiaryChatFilter.tick(client);ReleaseNoticeManager.tick(client);GitHubUpdateManager.tick(client);
+            }else CompactDamageManager.clear();
             if(menuOpenRequested){menuOpenRequested=false;SkyveilConfigScreen.open();}
             while(openMenu.consumeClick())SkyveilConfigScreen.open();
-            while(openLargeMap.consumeClick())if(ConfigManager.get().map.enabled&&client.screen==null)LargeMapScreen.open();
         });
         ClientCommandRegistrationCallback.EVENT.register((dispatcher,access)->{
             dispatcher.register(command("skyveil").executes(ctx->open()).then(command("menu").executes(ctx->open())).then(command("version").executes(ctx->showVersion())).then(command("changelog").executes(ctx->showChangelog())).then(command("update").executes(ctx->update())).then(debugPetCommand()).then(debugHuntingCommand()).then(debugWardrobeCommand()));

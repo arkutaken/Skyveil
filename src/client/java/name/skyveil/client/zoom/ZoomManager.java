@@ -2,6 +2,7 @@ package name.skyveil.client.zoom;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import name.skyveil.client.config.ConfigManager;
+import name.skyveil.client.SkyblockSession;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 
@@ -20,6 +21,6 @@ public final class ZoomManager {
     static int adjustLevel(int current,double vertical){return Math.max(0,Math.min(FACTORS.length-1,current+(vertical>0?1:-1)));}
     static float zoomedFov(float vanilla,int selected){return (float)Math.max(1.0,vanilla/FACTORS[Math.max(0,Math.min(FACTORS.length-1,selected))]);}
     static double factor(int selected){return FACTORS[Math.max(0,Math.min(FACTORS.length-1,selected))];}
-    private static boolean active(){Minecraft client=Minecraft.getInstance();return keyMapping!=null&&ConfigManager.get().zoom.enabled&&client!=null&&client.level!=null&&client.player!=null&&client.screen==null&&keyMapping.isDown();}
+    private static boolean active(){Minecraft client=Minecraft.getInstance();return SkyblockSession.isActive()&&keyMapping!=null&&ConfigManager.get().zoom.enabled&&client!=null&&client.level!=null&&client.player!=null&&client.screen==null&&keyMapping.isDown();}
     private static void syncKey(){if(keyMapping==null)return;int wanted=ConfigManager.get().zoom.key;if(wanted!=configuredKey){configuredKey=wanted;keyMapping.setKey(InputConstants.Type.KEYSYM.getOrCreate(wanted));KeyMapping.resetMapping();}}
 }

@@ -9,8 +9,9 @@ import java.util.Map;
 /** One bounded rolling damage window per target, independent of rendering and entities. */
 final class DamageBatcher {
     static final int MAX_HITS=5;
-    static final long AGGREGATION_TICKS=10;
     static final long DISPLAY_TICKS=30;
+    /** Allows one-second weapon swings to share a rolling window without retaining stale combat. */
+    static final long AGGREGATION_TICKS=20;
     private final Map<Integer,Batch> targets=new HashMap<>();
 
     Batch accept(int targetId,BigInteger damage,long tick){
@@ -18,6 +19,10 @@ final class DamageBatcher {
         if(tick-batch.lastHitTick>AGGREGATION_TICKS)batch.reset();
         if(batch.hits.size()==MAX_HITS)batch.sum=batch.sum.subtract(batch.hits.removeFirst());
         batch.hits.addLast(damage);batch.sum=batch.sum.add(damage);batch.lastHitTick=tick;batch.expiresAt=tick+DISPLAY_TICKS;return batch;
+    }
+    Batch addSecondary(int targetId,BigInteger damage,long tick){
+        Batch batch=targets.get(targetId);if(batch==null||batch.hits.isEmpty()||tick-batch.lastHitTick>AGGREGATION_TICKS)return null;
+        BigInteger combined=batch.hits.removeLast().add(damage);batch.hits.addLast(combined);batch.sum=batch.sum.add(damage);batch.expiresAt=tick+DISPLAY_TICKS;return batch;
     }
     void tick(long tick){targets.values().removeIf(batch->tick>batch.expiresAt);}
     void removeTarget(int targetId){targets.remove(targetId);}

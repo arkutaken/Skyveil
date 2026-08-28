@@ -1,5 +1,8 @@
 package name.skyveil.client.pet;
 
+import com.mojang.serialization.DynamicOps;
+import name.skyveil.client.cache.SkyveilCacheManager;
+import name.skyveil.client.SkyblockSession;
 import name.skyveil.client.config.ConfigManager;
 import name.skyveil.client.itemrarity.ItemRarityDetector;
 import name.skyveil.client.itemrarity.SkyblockRarity;
@@ -7,17 +10,21 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.multiplayer.PlayerInfo;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.nbt.Tag;
+import net.minecraft.resources.RegistryOps;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.level.GameType;
-import net.minecraft.world.scores.DisplaySlot;
 
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -49,8 +56,11 @@ public final class PetTracker {
     private static final long SKYBLOCK_TRANSITION_GRACE_MILLIS=12_000L,WIDGET_AUTHORITY_GRACE_MILLIS=12_000L;
     private static final long MENU_SETTLE_MILLIS=500L;
     private static final int WIDGET_FALLBACK_TICKS=5,SKYBLOCK_CHECK_TICKS=10;
-    private static final Map<PetInstanceId,PetData> CACHE=new HashMap<>();
+    private static final int CACHE_SCHEMA=1,MAX_CACHED_PETS=256;
+    private static final Map<PetInstanceId,PetData> CACHE=new LinkedHashMap<>();
     private static PetData current;
+    private static String loadedAccount;
+    private static boolean persistenceDirty;
     private static Object connection;
     private static String serverAddress="";
     private static long transitionStartedMillis;
@@ -89,18 +99,20 @@ public final class PetTracker {
     public static void tick(Minecraft client) {
         Object liveConnection=client.getConnection();
         if(liveConnection!=connection)handleConnectionChange(client,liveConnection);
+        ensureAccount(client);
+        if(persistenceDirty)flushToCache(client);
         boolean petsMenuOpen=client.player!=null&&client.screen instanceof AbstractContainerScreen<?> screen&&PetsMenuDetector.matches(screen);
+        boolean petTrainingOverviewOpen=client.player!=null&&client.screen instanceof AbstractContainerScreen<?> screen&&isPetTrainingOverview(screen.getTitle().getString());
         if(!petsMenuOpen)clearMenuTracking();
         if(liveConnection==null||client.player==null)return;
         if(!ConfigManager.get().petDisplay.enabled)return;
         long now=System.currentTimeMillis();
-        if(skyblockCheckCooldown--<=0){skyblockCheckCooldown=SKYBLOCK_CHECK_TICKS;boolean detectedSkyblock=detectSkyblock(client);
-            if(detectedSkyblock){skyblock=true;skyblockGraceUntil=now+SKYBLOCK_TRANSITION_GRACE_MILLIS;}else if(now>skyblockGraceUntil)skyblock=false;}
-        if((skyblock||now<=skyblockGraceUntil)&&(tabWidgetDirty||widgetFallbackCooldown--<=0)){
+        if(skyblockCheckCooldown--<=0){skyblockCheckCooldown=SKYBLOCK_CHECK_TICKS;skyblock=SkyblockSession.isActive();}
+        if(skyblock&&(tabWidgetDirty||widgetFallbackCooldown--<=0)){
             tabWidgetDirty=false;widgetFallbackCooldown=WIDGET_FALLBACK_TICKS;scanTabPetWidget(client);}
         if(menuCooldown-- > 0)return;
         menuCooldown=petsMenuOpen?0:5;
-        scanPetsMenu(client);
+        if(petTrainingOverviewOpen)scanPetTrainingOverview(client);else scanPetsMenu(client);
     }
 
     public static void onTabListPacket(String packetType){tabWidgetDirty=true;trace("tabInvalidated packet={}",packetType);}
@@ -152,8 +164,69 @@ public final class PetTracker {
         lastWidgetState=null;lastWidgetSeenMillis=0;lastWidgetAppliedRevision=-1;lastLiveXpGain=0;lastXpSource="NONE";
     }
 
+    public static void shutdown(Minecraft client){flushToCache(client);}
+    public static void disconnect(Minecraft client){flushToCache(client);loadedAccount=null;persistenceDirty=false;clearLogicalSession();}
+
+    private static void ensureAccount(Minecraft client) {
+        if(client==null||client.player==null||client.level==null||!SkyveilCacheManager.isLoaded())return;
+        String account=client.player.getUUID().toString();
+        if(account.equals(loadedAccount))return;
+        if(loadedAccount!=null)flushToCache(client);
+        loadedAccount=account;clearLogicalSession();loadFromCache(client);persistenceDirty=false;
+    }
+
+    private static void loadFromCache(Minecraft client) {
+        CompoundTag root=SkyveilCacheManager.profileSection(loadedAccount,"pets");
+        if(root==null||root.getIntOr("schema",0)!=CACHE_SCHEMA)return;
+        try {
+            DynamicOps<Tag> ops=RegistryOps.create(NbtOps.INSTANCE,client.level.registryAccess());
+            ListTag entries=root.getListOrEmpty("entries");PetData restoredCurrent=null;
+            for(int index=0;index<Math.min(entries.size(),MAX_CACHED_PETS);index++) {
+                CompoundTag entry=entries.getCompoundOrEmpty(index);PetData restored=decodePet(entry,ops);
+                if(restored==null)continue;CACHE.put(restored.instanceId(),restored);
+                if(entry.getBooleanOr("current",false))restoredCurrent=restored;
+            }
+            current=restoredCurrent;
+            if(current!=null){syncState=PetSyncState.STALE;stateRevision++;lastChangeSource=PetChangeSource.OTHER;lastChangeUsedCache=true;lastChangeMillis=System.currentTimeMillis();}
+            LOGGER.info("Restored {} pets and active pet {} from the unified cache",CACHE.size(),current==null?"none":current.name());
+        } catch(Exception exception){LOGGER.warn("Could not restore the Pet Display cache",exception);CACHE.clear();current=null;}
+    }
+
+    private static void flushToCache(Minecraft client) {
+        if(!persistenceDirty||loadedAccount==null||client==null||client.level==null)return;
+        try {
+            DynamicOps<Tag> ops=RegistryOps.create(NbtOps.INSTANCE,client.level.registryAccess());CompoundTag root=new CompoundTag();root.putInt("schema",CACHE_SCHEMA);ListTag entries=new ListTag();
+            int count=0;for(PetData data:CACHE.values()){if(count++>=MAX_CACHED_PETS)break;CompoundTag entry=encodePet(data,ops);entry.putBoolean("current",current!=null&&current.instanceId().equals(data.instanceId()));entries.add(entry);}
+            root.put("entries",entries);SkyveilCacheManager.putProfileSection(loadedAccount,"pets",root);persistenceDirty=false;
+        } catch(Exception exception){LOGGER.warn("Could not prepare the Pet Display cache",exception);}
+    }
+
+    private static CompoundTag encodePet(PetData data,DynamicOps<Tag> ops) {
+        CompoundTag entry=new CompoundTag();entry.putString("instance",data.instanceId().value());entry.putString("source",data.instanceId().source().name());entry.putString("confidence",data.instanceId().confidence().name());
+        entry.putString("internalId",safe(data.internalId()));entry.putString("name",safe(data.name()));entry.putString("rarity",data.rarity()==null?"":data.rarity().name());entry.putInt("level",data.level());entry.putBoolean("levelKnown",data.levelKnown());entry.putInt("maxLevel",data.maxLevel());
+        entry.putDouble("xp",data.currentLevelXp());entry.putDouble("required",data.xpForNextLevel());entry.putBoolean("xpKnown",data.xpKnown());entry.putBoolean("maxed",data.maxed());entry.putString("petItemId",safe(data.petItemId()));entry.putString("petItemName",safe(data.petItemName()));entry.putString("petItemRarity",data.petItemRarity()==null?"":data.petItemRarity().name());entry.putInt("petItemRgb",data.petItemRgb());
+        encodeStack(entry,"petIcon",data.petIcon(),ops);encodeStack(entry,"petItemIcon",data.petItemIcon(),ops);return entry;
+    }
+
+    private static PetData decodePet(CompoundTag entry,DynamicOps<Tag> ops) {
+        String instance=entry.getStringOr("instance","");String name=entry.getStringOr("name","");if(instance.isBlank()||instance.length()>160||name.isBlank()||name.length()>160)return null;
+        try {
+            PetInstanceId id=new PetInstanceId(instance,PetInstanceId.Source.valueOf(entry.getStringOr("source","FALLBACK")),PetInstanceId.Confidence.valueOf(entry.getStringOr("confidence","UNKNOWN")));
+            int maxLevel=Math.max(1,Math.min(500,entry.getIntOr("maxLevel",100))),level=Math.max(0,Math.min(maxLevel,entry.getIntOr("level",0)));
+            return new PetData(id,limited(entry.getStringOr("internalId",""),160),name,rarity(entry.getStringOr("rarity","")),level,entry.getBooleanOr("levelKnown",false),maxLevel,
+                Math.max(0,entry.getDoubleOr("xp",0)),Math.max(0,entry.getDoubleOr("required",0)),entry.getBooleanOr("xpKnown",false),entry.getBooleanOr("maxed",false),
+                limited(entry.getStringOr("petItemId",""),160),limited(entry.getStringOr("petItemName",""),160),rarity(entry.getStringOr("petItemRarity","")),entry.getIntOr("petItemRgb",0),decodeStack(entry,"petIcon",ops),decodeStack(entry,"petItemIcon",ops));
+        } catch(Exception ignored){return null;}
+    }
+
+    private static void encodeStack(CompoundTag entry,String key,ItemStack stack,DynamicOps<Tag> ops){if(stack==null||stack.isEmpty())return;ItemStack.CODEC.encodeStart(ops,stack).result().ifPresent(tag->entry.put(key,tag));}
+    private static ItemStack decodeStack(CompoundTag entry,String key,DynamicOps<Tag> ops){Tag tag=entry.get(key);if(tag==null)return ItemStack.EMPTY;try{return ItemStack.CODEC.parse(ops,tag).result().orElse(ItemStack.EMPTY);}catch(Exception ignored){return ItemStack.EMPTY;}}
+    private static SkyblockRarity rarity(String value){if(value==null||value.isBlank())return null;try{return SkyblockRarity.valueOf(value);}catch(Exception ignored){return null;}}
+    private static String safe(String value){return value==null?"":limited(value,160);}
+    private static String limited(String value,int length){return value==null?"":value.substring(0,Math.min(value.length(),length));}
+
     public static PetData current(){return current;}
-    public static boolean inSkyblock(){return skyblock;}
+    public static boolean inSkyblock(){return SkyblockSession.isActive();}
     public static PetSyncState syncState(){return syncState;}
     public static String debugSummary(){
         PetData data=current;
@@ -197,21 +270,10 @@ public final class PetTracker {
             // Page arrows, sorting, search, and visibility controls are not pet selections.
             // Remember a click only when the clicked stack is an actual parsed pet.
             Candidate clicked=parseCandidate(slot.getItem(),components,lore,slot.index);
-            if(clicked!=null){pendingClickedInstance=clicked.data.instanceId();pendingClickedSlot=slot.index;}
+            if(clicked!=null&&!clicked.training){pendingClickedInstance=clicked.data.instanceId();pendingClickedSlot=slot.index;}
         }
         syncState=PetSyncState.SYNCING;
         trace("petsMenuClick pendingInstance={} slot={}",pendingClickedInstance,pendingClickedSlot);
-    }
-
-    private static boolean detectSkyblock(Minecraft client) {
-        if(client.getConnection()==null||client.level==null)return false;
-        var sidebar=client.level.getScoreboard().getDisplayObjective(DisplaySlot.SIDEBAR);
-        if(sidebar!=null&&sidebar.getDisplayName().getString().toUpperCase(Locale.ROOT).contains("SKYBLOCK"))return true;
-        for(var info:client.getConnection().getOnlinePlayers()) {
-            String line=info.getTabListDisplayName()!=null?info.getTabListDisplayName().getString():info.getProfile().name();
-            if(line.toUpperCase(Locale.ROOT).contains("SKYBLOCK"))return true;
-        }
-        return false;
     }
 
     private static void scanPetsMenu(Minecraft client) {
@@ -241,29 +303,63 @@ public final class PetTracker {
         for(Candidate candidate:candidates){cache(candidate.data);tracePetData("menuParsed",candidate.data);}
         TabPetState widget=currentWidgetAuthority();
         if(widget!=null){
-            Candidate detailed=bestWidgetMatch(candidates,widget);int[] page=menuPage(screen.getTitle().getString());
+            Candidate detailed=bestWidgetMatch(candidates.stream().filter(candidate->!candidate.training).toList(),widget);int[] page=menuPage(screen.getTitle().getString());
             lastMenuSummary="title='"+screen.getTitle().getString()+"', page="+page[0]+"/"+page[1]+", candidates="+candidates.size()+", liveWidget="+widget.summary()+", detailMatch="+(detailed==null?"not visible":detailed.data.name());
             if(detailed!=null){PetData enriched=withWidgetState(detailed.data,widget);cache(enriched);replaceCurrent(enriched,PetChangeSource.TAB_WIDGET,true);syncState=PetSyncState.SYNCED;lastSyncMillis=now;pendingSelection=null;}
             return;
         }
         if(selected!=null&&selected.equalsIgnoreCase("none")){pendingSelection=null;replaceCurrent(null,PetChangeSource.PETS_MENU,false);syncState=PetSyncState.SYNCED;lastSyncMillis=System.currentTimeMillis();lastMenuSummary="title='"+screen.getTitle().getString()+"', candidates="+candidates.size()+", selected=none";return;}
         Candidate chosen=null;
-        List<Candidate> activeCandidates=candidates.stream().filter(Candidate::active).toList();
+        List<Candidate> selectableCandidates=candidates.stream().filter(candidate->!candidate.training).toList();
+        List<Candidate> activeCandidates=selectableCandidates.stream().filter(Candidate::active).toList();
         if(activeCandidates.size()==1)chosen=activeCandidates.getFirst();
-        if(chosen==null&&pendingClickedSlot>=0)for(Candidate candidate:candidates)if(candidate.slotIndex==pendingClickedSlot){chosen=candidate;break;}
-        if(chosen==null&&pendingClickedInstance!=null)for(Candidate candidate:candidates)if(candidate.data.instanceId().equals(pendingClickedInstance)){chosen=candidate;break;}
+        if(chosen==null&&pendingClickedSlot>=0)for(Candidate candidate:selectableCandidates)if(candidate.slotIndex==pendingClickedSlot){chosen=candidate;break;}
+        if(chosen==null&&pendingClickedInstance!=null)for(Candidate candidate:selectableCandidates)if(candidate.data.instanceId().equals(pendingClickedInstance)){chosen=candidate;break;}
         if(chosen==null&&selected!=null) {
-            chosen=bestVisibleMatch(candidates,selected);
+            chosen=bestVisibleMatch(selectableCandidates,selected);
         }
-        if(chosen==null&&current!=null)for(Candidate candidate:candidates)if(candidate.data.instanceId().equals(current.instanceId())){chosen=candidate;break;}
+        if(chosen==null&&current!=null)for(Candidate candidate:selectableCandidates)if(candidate.data.instanceId().equals(current.instanceId())){chosen=candidate;break;}
         // A live tab/chat snapshot has a deliberately temporary identity. Once its pet becomes
         // visible on a later menu page, promote the complete menu snapshot so the HUD regains
         // the real head, rarity colour, and held-item data.
         if(chosen==null&&current!=null&&current.instanceId().source()==PetInstanceId.Source.LIVE_UNRESOLVED)
-            chosen=bestVisibleMatch(candidates,current.name());
+            chosen=bestVisibleMatch(selectableCandidates,current.name());
         int[] page=menuPage(screen.getTitle().getString());
         lastMenuSummary="title='"+screen.getTitle().getString()+"', page="+page[0]+"/"+page[1]+", slots="+screen.getMenu().slots.size()+", candidates="+candidates.size()+", selected="+(selected==null?"unknown":selected)+", equipped="+(chosen==null?"not found":chosen.data.name());
         if(chosen!=null){cache(chosen.data);replaceCurrent(chosen.data,PetChangeSource.PETS_MENU,true);syncState=PetSyncState.SYNCED;lastSyncMillis=System.currentTimeMillis();pendingClickedInstance=null;pendingClickedSlot=-1;pendingSelection=null;}
+    }
+
+    /** Training pets are inventory-owned pets, not the player's currently summoned pet. */
+    private static void scanPetTrainingOverview(Minecraft client) {
+        if(!(client.screen instanceof AbstractContainerScreen<?> screen)||!isPetTrainingOverview(screen.getTitle().getString())||current==null)return;
+        List<Candidate> trainingPets=new ArrayList<>();
+        for(var slot:screen.getMenu().slots) {
+            if(!slot.hasItem()||slot.container==client.player.getInventory())continue;
+            ItemStack stack=slot.getItem();
+            List<Component> components=Screen.getTooltipFromItem(client,stack);
+            List<String> lore=components.stream().map(Component::getString).toList();
+            Candidate candidate=parseCandidate(stack,components,lore,slot.index);
+            if(candidate!=null){trainingPets.add(candidate);cache(candidate.data);}
+        }
+        List<Candidate> matches=trainingPets.stream().filter(candidate->sameTrainingPet(candidate.data,current)).toList();
+        if(matches.size()==1) {
+            trace("trainingPetSuppressed instance={} pet={}",matches.getFirst().data.instanceId().value(),matches.getFirst().data.name());
+            pendingSelection=null;lastWidgetState=null;lastWidgetFingerprint="";
+            replaceCurrent(null,PetChangeSource.PET_TRAINING,false);syncState=PetSyncState.SYNCED;lastSyncMillis=System.currentTimeMillis();
+        }
+    }
+
+    static boolean isPetTrainingOverview(String title) {
+        String normalized=(title==null?"":title).replaceAll("(?:\\u00c2)?\\u00a7.","").toLowerCase(Locale.ROOT)
+            .replaceAll("[^a-z0-9 ]"," ").replaceAll("\\s+"," ").trim();
+        return normalized.equals("pet training")||normalized.matches("pet training \\d+ \\d+");
+    }
+
+    private static boolean sameTrainingPet(PetData training,PetData active) {
+        if(training.instanceId().equals(active.instanceId()))return true;
+        if(training.instanceId().confidence()==PetInstanceId.Confidence.EXACT&&active.instanceId().confidence()==PetInstanceId.Confidence.EXACT)return false;
+        return samePet(training.name(),active.name())&&training.level()==active.level()
+            &&(training.rarity()==null||active.rarity()==null||training.rarity()==active.rarity());
     }
 
     private static TabPetState currentWidgetAuthority(){return lastWidgetState!=null&&System.currentTimeMillis()-lastWidgetSeenMillis<=WIDGET_AUTHORITY_GRACE_MILLIS?lastWidgetState:null;}
@@ -362,6 +458,7 @@ public final class PetTracker {
         SkyblockRarity itemRarity=null;
         int itemRgb=0;
         boolean active=Boolean.parseBoolean(find(ACTIVE,metadata,"false",1));
+        boolean training=isTrainingPetLore(lore);
         for(int index=0;index<lore.size();index++) {
             String line=lore.get(index);
             String normalized=line.trim();
@@ -384,7 +481,18 @@ public final class PetTracker {
         var xp=PetXpCalculator.calculate(lore,internal,level,maxLevel,metadataRarity!=null?metadataRarity:rarity,totalXp);
         PetInstanceId instanceId=PetInstanceId.fromMetadata(metadata,internal,metadataRarity==null?"":metadataRarity.name(),heldItem);
         PetData data=new PetData(instanceId,internal,name,rarity,level,true,maxLevel,xp.current(),xp.required(),xp.known(),xp.maxed(),heldItem,itemName,itemRarity,itemRgb,stack.copy(),itemIcon);
-        return new Candidate(data,active,slotIndex);
+        return new Candidate(data,active&&!training,training,slotIndex);
+    }
+
+    static boolean isTrainingPetLore(List<String> lore) {
+        if(lore==null)return false;
+        for(String raw:lore) {
+            String line=(raw==null?"":raw).replaceAll("(?:\\u00c2)?\\u00a7.","").toLowerCase(Locale.ROOT)
+                .replaceAll("[^a-z0-9 ]"," ").replaceAll("\\s+"," ").trim();
+            if(line.contains("currently in training")||line.contains("is currently training")||line.contains("training in progress")
+                ||line.contains("cancel training")||line.contains("training time remaining")||line.contains("collect trained pet"))return true;
+        }
+        return false;
     }
 
     /** Prevents UUID-less duplicate pets from overwriting one another in the session cache. */
@@ -420,7 +528,7 @@ public final class PetTracker {
                     used.add(assigned);
                 }
                 Candidate candidate=candidates.get(index);
-                resolved.set(index,new Candidate(withInstanceId(candidate.data,assigned),candidate.active,candidate.slotIndex));
+                resolved.set(index,new Candidate(withInstanceId(candidate.data,assigned),candidate.active,candidate.training,candidate.slotIndex));
             }
             if(indexes.size()>1)trace("duplicateGroup base={} count={} assigned={}",base.value(),indexes.size(),indexes.stream().map(index->resolved.get(index).data.instanceId().value()).toList());
         }
@@ -456,6 +564,27 @@ public final class PetTracker {
         return null;
     }
 
+    /** Lightweight Pets Menu renderer lookup with a tooltip fallback for modern menu stacks. */
+    static int displayedMenuLevel(ItemStack stack) {
+        if(stack==null||stack.isEmpty())return -1;
+        PetLevelParser.Parsed direct=PetLevelParser.parse(stack.getHoverName().getString());
+        if(direct!=null)return direct.level();
+        Minecraft client=Minecraft.getInstance();
+        List<String> tooltip=Screen.getTooltipFromItem(client,stack).stream().map(Component::getString).toList();
+        PetLevelParser.Parsed parsed=findPetHeader(stack,tooltip);
+        return parsed==null?-1:parsed.level();
+    }
+
+    /** Pet Menu stacks can expose their tier only in Hypixel's structured pet metadata. */
+    public static SkyblockRarity displayedMenuRarity(ItemStack stack) {
+        SkyblockRarity loreRarity=ItemRarityDetector.detect(stack);if(loreRarity!=null)return loreRarity;
+        return metadataRarity(customData(stack));
+    }
+
+    static SkyblockRarity metadataRarity(String metadata) {
+        return SkyblockRarity.fromLabel(find(TIER,metadata==null?"":metadata,"",1));
+    }
+
     private static String customData(ItemStack stack) {
         var custom=stack.get(net.minecraft.core.component.DataComponents.CUSTOM_DATA);
         return custom==null?"":custom.copyTag().toString();
@@ -470,9 +599,13 @@ public final class PetTracker {
             String headerLower=lines.get(header).plain().toLowerCase(Locale.ROOT);
             if(!(headerLower.equals("pet")||headerLower.equals("pet:")||headerLower.startsWith("pet: ")||headerLower.equals("pets")||headerLower.equals("pets:")||headerLower.startsWith("pets: ")))continue;
             PetLevelParser.Parsed pet=null;Component petComponent=null;double xp=-1,required=-1;boolean maxed=false;
-            for(int index=header;index<Math.min(lines.size(),header+10);index++){
-                TabLine tabLine=lines.get(index);String line=tabLine.plain();PetLevelParser.Parsed parsed=PetLevelParser.parse(line);
-                if(parsed!=null){pet=parsed;petComponent=tabLine.component();}
+            for(int index=header+1;index<Math.min(lines.size(),header+10);index++){
+                TabLine tabLine=lines.get(index);String line=tabLine.plain();
+                // The Pet Training widget is often immediately below the active Pet widget.
+                // It owns a different pet and must never be allowed to overwrite this section.
+                if(isActivePetSectionBoundary(line))break;
+                PetLevelParser.Parsed parsed=PetLevelParser.parse(line);
+                if(parsed!=null&&pet==null){pet=parsed;petComponent=tabLine.component();}
                 if(line.toUpperCase(Locale.ROOT).contains("MAX LEVEL"))maxed=true;
                 if(line.toLowerCase(Locale.ROOT).contains("xp")){Matcher fraction=TAB_XP.matcher(line);if(fraction.find()){xp=parseDisplayNumber(fraction.group(1));required=parseDisplayNumber(fraction.group(2));}}
             }
@@ -484,6 +617,12 @@ public final class PetTracker {
             reconcileTabPet(state);lastWidgetAppliedRevision=stateRevision;
             trace("widgetApplied state={} revision={} totalMicros={}",state.summary(),stateRevision,(System.nanoTime()-parseStarted)/1_000L);return;
         }
+    }
+
+    static boolean isActivePetSectionBoundary(String line) {
+        String normalized=(line==null?"":line).replaceAll("(?:\\u00c2)?\\u00a7.","").toLowerCase(Locale.ROOT)
+            .replaceAll("[^a-z0-9 ]"," ").replaceAll("\\s+"," ").trim();
+        return normalized.equals("pet training")||normalized.startsWith("pet training ");
     }
 
     private static SkyblockRarity widgetRarity(Component component,String name){
@@ -545,7 +684,7 @@ public final class PetTracker {
         double gain=active.level()==tabPet.level()&&active.xpKnown()?Math.max(0,xp-active.currentLevelXp()):0;
         boolean maxed=tabPet.maxed()||tabPet.level()>=active.maxLevel();
         PetData updated=new PetData(active.instanceId(),active.internalId(),active.name(),rarity,tabPet.level(),true,active.maxLevel(),maxed?0:xp,maxed?0:required,true,maxed,active.petItemId(),active.petItemName(),active.petItemRarity(),active.petItemRgb(),active.petIcon(),active.petItemIcon());
-        CACHE.put(updated.instanceId(),updated);lastLiveXpGain=gain;lastXpSource="TAB_WIDGET";
+        cache(updated);lastLiveXpGain=gain;lastXpSource="TAB_WIDGET";
         trace("directPetXp instance={} oldLevel={} newLevel={} oldXp={} newXp={} required={} gain={}",updated.instanceId().value(),active.level(),updated.level(),active.currentLevelXp(),updated.currentLevelXp(),updated.xpForNextLevel(),gain);
         replaceCurrent(updated,PetChangeSource.TAB_WIDGET,true);
         syncState=PetSyncState.SYNCED;lastSyncMillis=System.currentTimeMillis();pendingSelection=null;
@@ -602,7 +741,9 @@ public final class PetTracker {
     }
 
     private static void cache(PetData data) {
-        CACHE.put(data.instanceId(),data);
+        if(data==null)return;PetData merged=withCachedVisuals(data,CACHE.get(data.instanceId()));PetData old=CACHE.put(data.instanceId(),merged);
+        if(old==null||!sameSnapshot(old,merged))persistenceDirty=true;
+        while(CACHE.size()>MAX_CACHED_PETS){PetInstanceId oldest=CACHE.keySet().stream().filter(id->current==null||!id.equals(current.instanceId())).findFirst().orElse(null);if(oldest==null)break;CACHE.remove(oldest);}
     }
 
     private static List<PetData> findCached(String name,int level,SkyblockRarity rarity) {
@@ -612,13 +753,24 @@ public final class PetTracker {
     }
 
     private static void replaceCurrent(PetData replacement,PetChangeSource source,boolean cached) {
+        if(replacement!=null)replacement=withCachedVisuals(replacement,CACHE.get(replacement.instanceId()));
         if(sameSnapshot(current,replacement)){lastChangeSource=source;lastChangeUsedCache=cached;return;}
         String old=current==null?"none":current.name();
         current=replacement;
+        persistenceDirty=true;
         stateRevision++;
         lastChangeSource=source;lastChangeUsedCache=cached;lastChangeMillis=System.currentTimeMillis();
         trace("activeChanged old={} new={} source={} cached={} revision={}",old,replacement==null?"none":replacement.name(),source,cached,stateRevision);
         if(replacement!=null)tracePetData("activeStored",replacement);
+    }
+
+    private static PetData withCachedVisuals(PetData data,PetData cached) {
+        if(data==null||cached==null)return data;
+        ItemStack petIcon=data.petIcon()==null||data.petIcon().isEmpty()?cached.petIcon():data.petIcon();
+        boolean sameItem=data.hasPetItem()&&(safe(data.petItemId()).equals(safe(cached.petItemId()))||safe(data.petItemName()).equalsIgnoreCase(safe(cached.petItemName())));
+        ItemStack itemIcon=(data.petItemIcon()==null||data.petItemIcon().isEmpty())&&sameItem?cached.petItemIcon():data.petItemIcon();
+        if(sameStack(petIcon,data.petIcon())&&sameStack(itemIcon,data.petItemIcon()))return data;
+        return new PetData(data.instanceId(),data.internalId(),data.name(),data.rarity(),data.level(),data.levelKnown(),data.maxLevel(),data.currentLevelXp(),data.xpForNextLevel(),data.xpKnown(),data.maxed(),data.petItemId(),data.petItemName(),data.petItemRarity(),data.petItemRgb(),petIcon,itemIcon);
     }
 
     private static PetData withLevel(PetData data,int level) {
@@ -667,7 +819,7 @@ public final class PetTracker {
         String fingerprint(){return key(name)+'|'+level+'|'+rarity+'|'+(xpKnown()?xp:"?")+'|'+(xpKnown()?required:"?")+'|'+maxed;}
         String summary(){return name+"/L"+level+"/"+(rarity==null?"?":rarity)+"/"+(maxed?"MAX":xpKnown()?xp+"/"+required:"XP?");}
     }
-    private record Candidate(PetData data,boolean active,int slotIndex){}
+    private record Candidate(PetData data,boolean active,boolean training,int slotIndex){}
     private record PendingSelection(String name,int level,SkyblockRarity rarity,PetChangeSource source,long createdMillis){}
-    private enum PetChangeSource {PETS_MENU,CHAT,AUTOPET,TAB_WIDGET,OTHER}
+    private enum PetChangeSource {PETS_MENU,PET_TRAINING,CHAT,AUTOPET,TAB_WIDGET,OTHER}
 }

@@ -66,6 +66,12 @@ class AttributeMenuPipelineTest {
         assertEquals("Howling Spirit",AttributeMenuPanel.bazaarQuery("Howling Spirit"));
     }
 
+    @Test void attributeFilterTooltipFindsTheSelectedCategory(){
+        assertEquals("Fishing",AttributeMenuPanel.selectedFilter(List.of("Filter","Combat","▶ Fishing","Farming","Click to switch filter!")));
+        assertEquals("All",AttributeMenuPanel.selectedFilter(List.of("Filter","> All")));
+        assertEquals("",AttributeMenuPanel.selectedFilter(List.of("Filter","Click to switch filter!")));
+    }
+
     @Test void duplicateObservationsMergeByStableIdentity(){
         var first=row("ATTRIBUTE:NATURE_ELEMENTAL",AttributeMenuParser.Ownership.UNOWNED,0,1);
         var replacement=row("ATTRIBUTE:NATURE_ELEMENTAL",AttributeMenuParser.Ownership.OWNED,1,3);

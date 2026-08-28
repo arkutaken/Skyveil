@@ -1,5 +1,180 @@
 # Changelog
 
+## 1.14.9
+
+- Fixed excluded secondary damage numbers remaining visible underneath the Compact Damage display.
+- Compact Damage now hides every recognized original damage splash while enabled.
+- Disabled sources are hidden and ignored, while enabled sources are hidden and merged into the latest melee sample.
+
+## 1.14.8
+
+- Compact Damage now builds its five-hit average from actual melee attacks instead of every damage tick near the target.
+- Venomous, poison, Fire Aspect, burning, Thunderlord, Thunderbolt, Crimson Swipe, Ferocity, pet, and other secondary damage are excluded by default.
+- Added an independent opt-in toggle for every supported secondary damage category under Compact Damage.
+- Enabled secondary damage is added to its triggering melee sample and never consumes one of the five melee-hit slots.
+- Secondary damage labels remain visible normally when their category is excluded from Compact Damage.
+
+## 1.14.7
+
+- Removed the Void Compact Damage style.
+- Compact Damage now offers only Minimal, Neon, and Crimson styles.
+- Existing Void selections migrate automatically to Minimal.
+
+## 1.14.6
+
+- Fixed the TAB parser continuing past the active `Pet:` widget into the separate `Pet Training:` widget.
+- Pet Display now reads only the first pet inside the active `Pet:` section and stops at `Pet Training:`.
+
+## 1.14.5
+
+- Removed the Chat Copy Bindings management screen completely.
+- Chat Copy now has exactly one keybind control directly inside its normal settings page, matching Item Protection's layout.
+- The single control still records complete held-key and mouse chords such as Ctrl + C + Left Click.
+- Existing multi-binding configurations migrate safely by retaining the first saved binding.
+
+## 1.14.4
+
+- Replaced Chat Copy's separate binding editor with inline keybind buttons in the binding list.
+- Adding a binding now creates it immediately; click its keybind button and press the desired held-key plus mouse chord.
+- Multi-input chords such as Ctrl + C + Left Click remain fully supported.
+
+## 1.14.3
+
+- Fixed pets placed in Fann's Pet Training being mistaken for the active summoned pet in Pet Display.
+- Training pets remain cached for their head, level, rarity, and held-item visuals, but are excluded from every active-pet selection path.
+
+## 1.14.2
+
+- Replaced Chat Copy's separate key, modifier, and mouse controls with one full-chord recorder.
+- Hold any number of keyboard keys and click a mouse button while recording; every captured input is then required to copy a hovered message.
+- Existing Chat Copy bindings migrate automatically to the new chord format.
+
+## 1.14.1
+
+- Chat Copy now guarantees plain-text clipboard output by removing embedded Minecraft formatting and color codes.
+- Normal message text and Unicode symbols remain unchanged.
+
+## 1.14.0
+
+- Added Chat Copy under Interface with support for any number of configurable bindings.
+- Each binding supports a mouse button, optional held keyboard key, and optional Ctrl, Shift, or Alt modifiers.
+- Hovering any wrapped chat line and activating a binding copies its complete original message to the clipboard.
+
+## 1.13.36
+
+- Restored rarity backgrounds for genuine Pet Menu entries whose visible lore omits a parseable rarity footer.
+- Pet Menu backgrounds now use the same structured Hypixel pet-tier metadata already validated by the pet tracker, while non-pet GUI controls remain unaffected.
+
+## 1.13.35
+
+- Fixed the real multi-page Attribute filter cache reset caused by Minecraft removing and replacing the container screen on every Hypixel page change.
+- Screen replacement now preserves the active filter and all observed pages; the cache is cleared only after the client confirms that the Attribute Menu was actually left.
+
+## 1.13.34
+
+- Fixed filtered Attribute pages still being discarded during Hypixel's temporary page-loading state.
+- The active filter is now changed or cleared only from an explicitly selected filter tooltip, preserving every manually scanned page for combined price sorting.
+
+## 1.13.33
+
+- Fixed filtered Attribute Menu pages being discarded when Hypixel replaces the screen during manual page changes.
+- Every manually visited page in the active filter is now retained and merged before price sorting, so the cheapest shards are ordered across the complete observed filter.
+- Filtered-page data is cleared only after leaving the Attribute Menu or selecting a different filter.
+
+## 1.13.32
+
+- Removed automatic Attribute Menu page navigation that repeatedly took control of the menu.
+- Attribute filtering now observes only pages the player opens, preserving normal clicks and menu interaction.
+
+## 1.13.31
+
+- Restored item-rarity backgrounds for real pet entries in the Pets Menu and pet results in Auctions.
+- The visible, correctly colored tooltip rarity footer is now authoritative even when a real item carries Hypixel GUI metadata.
+- Attribute filters now automatically traverse every page in the selected category before presenting the complete price-sorted shard list.
+- Filter scanning can move forward or backward to collect missed pages and stops once every filtered page has been observed.
+
+## 1.13.30
+
+- Fixed Attribute Progress ignoring the Attribute Menu's active category filter.
+- The panel now detects Hypixel's selected filter, resets its filtered page set when the category changes, and displays only shards observed on that filter's pages.
+- Filtered pages accumulate while browsing them, while the persisted all-attribute collection and global completion counters remain intact.
+
+## 1.13.29
+
+- Pet Display held-item icons now resolve from the same modeled SkyBlock item catalog used by Item Search.
+- Existing cached pets are enriched at render time, so items such as Lucky Clover immediately use their correct built-in SkyBlock model without requiring another `/pets` scan.
+- Retained the previous cached icon and safe vanilla mappings as fallbacks when a catalog entry is unavailable.
+
+## 1.13.28
+
+- Removed the Cosmic and Runic Pet Display styles and their bundled frame textures.
+- Simplified Pet Display style selection to Panel and Minimal.
+- Existing Cosmic, Runic, Neon, or Glass selections now migrate safely to Panel.
+
+## 1.13.27
+
+- Expanded the Cosmic and Runic Pet Display safe area so the complete pet HUD remains inside the decorative frame.
+- Moved the pet icon, name, level, XP text, progress bar, and pet-item row away from the ornate borders.
+- Raised the pet-item row above the lower frame and shortened the progress bar to respect the inner right edge.
+
+## 1.13.26
+
+- Reworked the Cosmic Pet Display frame with a sharper astral double border, restrained constellations, and gold star accents while preserving the readable content area.
+- Reworked the Runic Pet Display frame with angular amethyst-and-gold linework, segmented rune details, and compact centered sigils.
+- Added a central SkyBlock session gate that requires both a Hypixel server address and a live `SKYBLOCK` sidebar before gameplay features activate.
+- Disabled Skyveil HUDs, overlays, GUI replacements, menu tools, combat processing, chat filters, item protection, and Zoom outside Hypixel SkyBlock.
+- Kept the Skyveil configuration and update commands available outside SkyBlock so the mod can still be configured and maintained.
+
+## 1.13.25
+
+- Fixed the Autopet chat filter so level-less, formatted, spaced, and rule-number notification variants are hidden when enabled.
+- Added an in-place Pet Display preview to the Display Style settings card; cycling the option updates the real HUD preview immediately.
+- Removed the Neon and Glass Pet Display styles.
+- Added clean Cosmic and Runic styles with thin full-panel pixel-art borders, translucent backgrounds, safe content padding, and aligned XP progress bars.
+- Migrated existing Neon selections to Cosmic and Glass selections to Runic.
+- Kept Panel and Minimal available and preserved the account-aware pet texture and attached-item cache.
+
+## 1.13.24
+
+- Reworked the Skyveil configuration menu into categorized feature dashboards with focused, expandable subcategory pages and clearer navigation.
+- Moved Zoom into Interface, made HUD Layout a direct action, added four Compact Damage styles, and fixed five-hit averages resetting too quickly for slower attacks.
+- Removed the complete Map feature, including the minimap, large map, map keybind, NPC and custom markers, settings, bundled maps, and developer generator.
+- Consolidated Storage Preview, equipment, Attribute Progress, and shard prices into one validated, account-aware runtime cache.
+- Loads cache data once at startup, keeps changes in memory, and atomically replaces the single cache file during normal shutdown.
+- Migrates and removes confirmed legacy cache files after a successful save; malformed, outdated, and oversized data is safely rejected.
+- Removed disk access and serialization from menu rendering and live container updates.
+- Made equipment scans packet-driven and prepared Attribute and Hunting Box price rows only when source data changes.
+- Batched Storage Preview slot grids and balanced every modified pose and scissor state with guaranteed cleanup.
+- Removed unsafe cached Minecraft item-render states so animated and context-dependent models remain correct across reloads and GUI changes.
+- Fixed Storage Preview Shift-clicking so compatible partial stacks are filled before remaining items move into empty storage slots.
+- Fixed false item-rarity backgrounds by requiring an explicit rarity footer in the visible tooltip instead of reading hidden metadata or descriptive text.
+- Restored the correct rarity-colored backgrounds for recombobulated items with decorated tooltip rarity lines.
+- Rarity parsing now ignores visual glyphs, letters, numbers, and item-type text surrounding the correctly colored rarity word.
+
+## 1.13.23
+
+- Removed synchronous Storage Preview cache serialization from live item updates; previews now flush safely when the storage UI closes or Minecraft shuts down.
+- Cached pet-level tooltip parsing, item-rarity backgrounds, decorative-item detection results, and lore-search matches for unchanged menu stacks.
+- Removed repeated title parsing from every Pets Menu and Auction House slot render.
+- Disabled expensive Attribute Menu diagnostic-string construction unless debug mode is enabled.
+- Reused immutable Storage Preview color palettes and skipped rarity analysis entirely while rarity backgrounds are disabled.
+
+## 1.13.22
+
+- Optimized Storage Preview by caching item rarity and menu-item analysis instead of repeating NBT parsing every frame.
+- Changed active storage synchronization from continuous full-slot fingerprinting to server container-update events.
+- Skipped unnecessary item-decoration extraction for single, undamaged stored items.
+
+## 1.13.21
+
+- Added bottom-right pet-level overlays to pet listings throughout the Auction House.
+- Kept auction controls, non-pet listings, and player inventory items free of level overlays.
+
+## 1.13.20
+
+- Added pet-level overlays to pet icons in the Pets Menu.
+- Positioned each level compactly in the bottom-right corner without affecting navigation controls or player inventory items.
+
 ## 1.13.19
 
 - Disabled Inventory Button rendering and click handling while the Storage Preview workspace is active.

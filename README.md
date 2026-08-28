@@ -40,4 +40,4 @@ For a guided tour of startup, event flow, thread boundaries, caches, persistence
 
 ## License
 
-Skyveil's source is released under CC0-1.0. The bundled map renders have separate provenance and redistribution cautions documented in [THIRD_PARTY_ASSETS.md](THIRD_PARTY_ASSETS.md).
+Skyveil's source is released under CC0-1.0.

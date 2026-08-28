@@ -6,15 +6,15 @@ import net.minecraft.network.chat.TextColor;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/** Reads explicit SkyBlock metadata first, then the canonical rarity line at the bottom of item lore. */
+/** Reads only the canonical rarity footer shown in an item's tooltip. */
 public final class ItemRarityDetector {
-    private static final Pattern METADATA=Pattern.compile("(?i)(?:rarity|tier)[^a-z]{0,12}(very[_ ]special|common|uncommon|rare|epic|legendary|legenjerry|mythic|divine|special|supreme|ultimate|admin)");
-    private static final Pattern LORE_LINE=Pattern.compile("(?:^| )(VERY SPECIAL|COMMON|UNCOMMON|RARE|EPIC|LEGENDARY|LEGENJERRY|MYTHIC|DIVINE|SPECIAL|SUPREME|ULTIMATE|ADMIN)(?= |$)");
+    private static final Pattern RARITY_WORD=Pattern.compile("(?:^| )(VERY SPECIAL|COMMON|UNCOMMON|RARE|EPIC|LEGENDARY|LEGENJERRY|MYTHIC|DIVINE|SPECIAL|SUPREME|ULTIMATE|ADMIN)(?= |$)");
     private static final Map<ItemStack,CacheEntry> CACHE=Collections.synchronizedMap(new WeakHashMap<>());
 
     private ItemRarityDetector() {}
@@ -70,50 +70,48 @@ public final class ItemRarityDetector {
     }
 
     private static Highlight detectHighlightUncached(ItemStack stack) {
-        // The displayed final lore rarity is authoritative. In particular, custom item metadata
-        // may describe a recombobulated item's base tier rather than its current visible tier.
+        // An explicit displayed lore rarity is authoritative. Inspect tooltip lines from bottom
+        // to top while ignoring hidden metadata and rarity words inside descriptions.
         var lore=stack.get(DataComponents.LORE);
-        if(lore!=null) {
-            var lines=lore.lines();
-            for(int index=lines.size()-1;index>=0;index--) {
-                Highlight highlight=fromLoreLine(lines.get(index));
-                if(highlight!=null)return highlight;
-            }
-        }
-        var custom=stack.get(DataComponents.CUSTOM_DATA);
-        if(custom!=null) {
-            Matcher matcher=METADATA.matcher(custom.copyTag().toString());
-            if(matcher.find()) {
-                SkyblockRarity rarity=SkyblockRarity.fromLabel(matcher.group(1));
-                if(rarity!=null)return new Highlight(rarity,rarity.rgb());
-            }
+        return lore==null?null:detectTooltipLore(lore.lines());
+    }
+
+    static Highlight detectTooltipLore(List<Component> lines) {
+        for(int index=lines.size()-1;index>=0;index--) {
+            Component line=lines.get(index);
+            if(line.getString().isBlank())continue;
+            Highlight highlight=fromLoreLine(line);
+            if(highlight!=null)return highlight;
         }
         return null;
     }
 
     private static Highlight fromLoreLine(Component component) {
-        String normalized=component.getString().toUpperCase(java.util.Locale.ROOT)
-            .replace('_',' ').replaceAll("[^A-Z ]+"," ").replaceAll("\\s+"," ").trim();
-        Matcher matcher=LORE_LINE.matcher(normalized);
-        if(!matcher.find())return null;
-        SkyblockRarity rarity=SkyblockRarity.fromLabel(matcher.group(1));
-        if(rarity==null)return null;
-        String token=matcher.group(1);
-        int styledColor=findTokenColor(component,token);
-        return new Highlight(rarity,styledColor>=0?styledColor:rarity.rgb());
+        String normalized=normalize(component.getString());
+        Matcher matcher=RARITY_WORD.matcher(normalized);
+        while(matcher.find()) {
+            SkyblockRarity rarity=SkyblockRarity.fromLabel(matcher.group(1));
+            if(rarity==null)continue;
+            int styledColor=findRarityWordColor(component,matcher.group(1),rarity);
+            if(styledColor>=0)return new Highlight(rarity,rarity.rgb());
+        }
+        return null;
     }
 
-    private static int findTokenColor(Component line,String token) {
-        String firstWord=token.substring(0,token.indexOf(' ')<0?token.length():token.indexOf(' '));
+    private static int findRarityWordColor(Component line,String token,SkyblockRarity rarity) {
         for(Component part:line.toFlatList()) {
-            String text=part.getString().toUpperCase(java.util.Locale.ROOT);
-            if(text.contains(token)||text.contains(firstWord)) {
-                TextColor color=part.getStyle().getColor();
-                if(color!=null)return color.getValue()&0xFFFFFF;
-            }
+            String text=normalize(part.getString());
+            if(!text.contains(token))continue;
+            TextColor color=part.getStyle().getColor();
+            if(color!=null&&(color.getValue()&0xFFFFFF)==rarity.rgb())return color.getValue()&0xFFFFFF;
         }
         TextColor root=line.getStyle().getColor();
-        return root==null?-1:root.getValue()&0xFFFFFF;
+        return root!=null&&(root.getValue()&0xFFFFFF)==rarity.rgb()?root.getValue()&0xFFFFFF:-1;
+    }
+
+    private static String normalize(String text) {
+        return text.toUpperCase(java.util.Locale.ROOT)
+            .replace('_',' ').replaceAll("[^A-Z ]+"," ").replaceAll("\\s+"," ").trim();
     }
 
     public record Highlight(SkyblockRarity rarity,int rgb) {}

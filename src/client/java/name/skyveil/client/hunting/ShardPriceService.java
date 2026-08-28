@@ -5,12 +5,14 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import name.skyveil.client.cache.SkyveilCacheManager;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Reader;
-import java.io.Writer;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -18,7 +20,6 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Locale;
@@ -39,7 +40,7 @@ public final class ShardPriceService {
 
     public static void initialize(){
         if(!INITIALIZED.compareAndSet(false,true))return;
-        Thread.startVirtualThread(()->{loadCache();refreshAsync();});
+        Thread.startVirtualThread(()->{SkyveilCacheManager.awaitLoaded();loadCache();refreshAsync();});
     }
 
     public static void ensureFresh(){
@@ -55,6 +56,8 @@ public final class ShardPriceService {
         return current.fromNetwork()?Status.LIVE:Status.CACHED;
     }
     public static int pricedProducts(){return snapshot.prices().size();}
+    static long revision(){Snapshot current=snapshot;return 31L*current.fetchedAt()+current.prices().size();}
+    public static void flush(){if(SkyveilCacheManager.isLoaded())updateCache(snapshot);}
     public static String format(long coins){
         double value=coins;String suffix="";
         if(Math.abs(value)>=1_000_000_000_000L){value/=1_000_000_000_000D;suffix="t";}
@@ -83,24 +86,20 @@ public final class ShardPriceService {
             HttpRequest request=HttpRequest.newBuilder(ENDPOINT).timeout(Duration.ofSeconds(20)).header("Accept","application/json").header("User-Agent","Skyveil/1.10.1 shard-price-service").GET().build();
             HttpResponse<String> response=HTTP.send(request,HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));if(response.statusCode()!=200)throw new IllegalStateException("HTTP "+response.statusCode());
             JsonObject root=JsonParser.parseString(response.body()).getAsJsonObject();Map<String,Quote> prices=parseProducts(root);if(prices.isEmpty())throw new IllegalStateException("response contained no shard prices");
-            long fetchedAt=System.currentTimeMillis(),apiUpdated=longValue(root,"lastUpdated");snapshot=new Snapshot(prices,fetchedAt,apiUpdated,true);writeCache(new CacheFile(fetchedAt,apiUpdated,prices));
+            long fetchedAt=System.currentTimeMillis(),apiUpdated=longValue(root,"lastUpdated");snapshot=new Snapshot(prices,fetchedAt,apiUpdated,true);updateCache(snapshot);
             LOGGER.info("Loaded {} shard prices from the Hypixel Bazaar snapshot",prices.size());
         }catch(Exception exception){LOGGER.warn("Could not refresh Hypixel Bazaar shard prices; retaining the last known snapshot",exception);}
         finally{REFRESHING.set(false);}});
     }
 
     private static void loadCache(){
-        Path path=cachePath();if(!Files.isRegularFile(path))return;
-        try(Reader reader=Files.newBufferedReader(path,StandardCharsets.UTF_8)){
-            CacheFile cached=GSON.fromJson(reader,CacheFile.class);if(cached!=null&&cached.prices()!=null&&!cached.prices().isEmpty())snapshot=new Snapshot(Map.copyOf(cached.prices()),cached.fetchedAt(),cached.apiLastUpdated(),false);
-        }catch(Exception exception){LOGGER.warn("Could not read cached shard prices from {}",path,exception);}
+        CompoundTag cached=SkyveilCacheManager.globalSection("shard_prices");if(cached!=null){HashMap<String,Quote> prices=new HashMap<>();ListTag entries=cached.getListOrEmpty("prices");for(int index=0;index<Math.min(entries.size(),1000);index++){CompoundTag entry=entries.getCompoundOrEmpty(index);String key=entry.getStringOr("key","");if(!key.startsWith("SHARD_")||key.length()>120)continue;Long buy=entry.getBooleanOr("hasBuy",false)?entry.getLongOr("buy",0):null,sell=entry.getBooleanOr("hasSell",false)?entry.getLongOr("sell",0):null;if(buy!=null&&buy<=0)buy=null;if(sell!=null&&sell<=0)sell=null;if(buy!=null||sell!=null)prices.put(key,new Quote(buy,sell));}if(!prices.isEmpty()){snapshot=new Snapshot(Map.copyOf(prices),cached.getLongOr("fetchedAt",0),cached.getLongOr("apiLastUpdated",0),false);return;}}
+        migrateLegacyCache();
     }
-    private static void writeCache(CacheFile cache){
-        Path path=cachePath(),temporary=path.resolveSibling("shards.json.tmp");
-        try{Files.createDirectories(path.getParent());try(Writer writer=Files.newBufferedWriter(temporary,StandardCharsets.UTF_8)){GSON.toJson(cache,writer);}try{Files.move(temporary,path,StandardCopyOption.REPLACE_EXISTING,StandardCopyOption.ATOMIC_MOVE);}catch(Exception unsupported){Files.move(temporary,path,StandardCopyOption.REPLACE_EXISTING);}}
-        catch(Exception exception){LOGGER.warn("Could not persist shard prices to {}",path,exception);}
+    private static void updateCache(Snapshot current){CompoundTag cached=new CompoundTag();cached.putInt("schema",1);cached.putLong("fetchedAt",current.fetchedAt());cached.putLong("apiLastUpdated",current.apiLastUpdated());ListTag entries=new ListTag();int count=0;for(var price:current.prices().entrySet()){if(count++>=1000)break;CompoundTag entry=new CompoundTag();entry.putString("key",price.getKey());Quote quote=price.getValue();if(quote.instantBuy()!=null&&quote.instantBuy()>0){entry.putBoolean("hasBuy",true);entry.putLong("buy",quote.instantBuy());}if(quote.instantSell()!=null&&quote.instantSell()>0){entry.putBoolean("hasSell",true);entry.putLong("sell",quote.instantSell());}entries.add(entry);}cached.put("prices",entries);SkyveilCacheManager.putGlobalSection("shard_prices",cached);}
+    private static void migrateLegacyCache(){Path path=legacyCachePath();if(!Files.isRegularFile(path)){if(Files.isDirectory(path.getParent()))SkyveilCacheManager.registerObsolete(path.getParent());return;}try{if(Files.size(path)>8L*1024L*1024L)throw new IllegalStateException("legacy shard cache is oversized");try(Reader reader=Files.newBufferedReader(path,StandardCharsets.UTF_8)){CacheFile legacy=GSON.fromJson(reader,CacheFile.class);if(legacy!=null&&legacy.prices()!=null&&!legacy.prices().isEmpty()){snapshot=new Snapshot(Map.copyOf(legacy.prices()),legacy.fetchedAt(),legacy.apiLastUpdated(),false);updateCache(snapshot);}}SkyveilCacheManager.registerObsolete(path);SkyveilCacheManager.registerObsolete(path.resolveSibling("shards.json.tmp"));SkyveilCacheManager.registerObsolete(path.getParent());}catch(Exception exception){LOGGER.warn("Could not migrate legacy shard price cache",exception);}
     }
-    private static Path cachePath(){return FabricLoader.getInstance().getConfigDir().resolve("skyveil").resolve("cache").resolve("shards.json");}
+    private static Path legacyCachePath(){return FabricLoader.getInstance().getConfigDir().resolve("skyveil").resolve("cache").resolve("shards.json");}
     private static boolean booleanValue(JsonObject object,String key){try{return object.get(key).getAsBoolean();}catch(Exception ignored){return false;}}
     private static long longValue(JsonObject object,String key){try{return object.get(key).getAsLong();}catch(Exception ignored){return 0;}}
     private static Long positiveRounded(JsonElement element){try{double value=element.getAsDouble();return Double.isFinite(value)&&value>0&&value<Long.MAX_VALUE?Math.round(value):null;}catch(Exception ignored){return null;}}

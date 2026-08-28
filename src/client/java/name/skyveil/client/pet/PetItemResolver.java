@@ -1,12 +1,16 @@
 package name.skyveil.client.pet;
 
+import name.skyveil.client.itemsearch.SkyBlockItemIconCatalog;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 /** Resolves only representations that can be reconstructed safely from client-visible IDs. */
 public final class PetItemResolver {
+    private static final Map<String,ItemStack> CATALOG_ICONS=new HashMap<>();
     private PetItemResolver() {}
     public static String displayName(String id){
         if(id==null||id.isBlank())return "";
@@ -16,6 +20,11 @@ public final class PetItemResolver {
         return result.toString();
     }
     public static ItemStack resolve(String id,String name){
+        String internalId=id==null?"":id.trim().toUpperCase(Locale.ROOT);
+        if(!internalId.isBlank()){
+            ItemStack catalogIcon=CATALOG_ICONS.computeIfAbsent(internalId,key->SkyBlockItemIconCatalog.resolve(key));
+            if(!catalogIcon.isEmpty())return catalogIcon.copy();
+        }
         String value=((id==null?"":id)+" "+(name==null?"":name)).toUpperCase(Locale.ROOT);
         if(value.contains("SHELMET"))return new ItemStack(Items.TURTLE_HELMET);
         if(value.contains("TEXTBOOK"))return new ItemStack(Items.ENCHANTED_BOOK);

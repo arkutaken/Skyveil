@@ -48,18 +48,24 @@ public final class SearchManager {
         long revision=SettingsRegistry.revision();
         if(indexedRevision==revision)return;
         Map<String,IndexedFeature> unique=new LinkedHashMap<>();
-        for(ConfigCategory category:SettingsRegistry.categories())for(ConfigSubcategory subcategory:category.subcategories)
-            for(SettingDefinition setting:subcategory.settings){
+        for(ConfigCategory category:SettingsRegistry.categories()){
+            for(SettingDefinition setting:category.settings){
+                String identity=category.id+'\u0000'+setting.key;
+                IndexedFeature feature=new IndexedFeature(category,null,setting,normalize(setting.name));
+                unique.putIfAbsent(identity,feature);
+            }
+            for(ConfigSubcategory subcategory:category.subcategories)for(SettingDefinition setting:subcategory.settings){
                 String identity=category.id+'\u0000'+subcategory.id+'\u0000'+setting.key;
                 IndexedFeature feature=new IndexedFeature(category,subcategory,setting,normalize(setting.name));
                 IndexedFeature previous=unique.putIfAbsent(identity,feature);
                 if(previous!=null)LOGGER.warn("Duplicate settings registration ignored in search index: {} > {} > {}",category.displayName,subcategory.displayName,setting.key);
             }
+        }
         index=List.copyOf(unique.values());indexedRevision=revision;
     }
 
     public record Result(ConfigCategory category,ConfigSubcategory subcategory,SettingDefinition setting,int rank){
-        public String path(){return "general".equals(subcategory.id)?category.displayName:category.displayName+" > "+subcategory.displayName;}
+        public String path(){return subcategory==null?category.displayName:category.displayName+" > "+subcategory.displayName;}
     }
 
     private record IndexedFeature(ConfigCategory category,ConfigSubcategory subcategory,SettingDefinition setting,String normalizedName) {}

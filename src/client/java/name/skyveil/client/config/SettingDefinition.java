@@ -3,7 +3,7 @@ package name.skyveil.client.config;
 import java.util.function.*;
 
 public final class SettingDefinition {
-    public enum Type { TOGGLE, DECIMAL_SLIDER, COLOR, BUTTON, KEYBIND, CHOICE }
+    public enum Type { TOGGLE, DECIMAL_SLIDER, COLOR, BUTTON, KEYBIND, CHORD, CHOICE }
     public final String key, name, description, tooltip, buttonLabel;
     public final java.util.List<String> choices;
     public final Type type;
@@ -31,6 +31,9 @@ public final class SettingDefinition {
     }
     public static SettingDefinition keybind(String key,String name,String description,Supplier<Integer> get,Consumer<Integer> set){
         return new SettingDefinition(key,name,description,description,Type.KEYBIND,0,0,()->get.get(),v->set.accept((Integer)v),null,java.util.List.of());
+    }
+    public static SettingDefinition chord(String key,String name,String description,Supplier<name.skyveil.client.chatcopy.ChatCopyBinding> get,Consumer<name.skyveil.client.chatcopy.ChatCopyBinding> set){
+        return new SettingDefinition(key,name,description,description,Type.CHORD,0,0,()->get.get(),v->set.accept((name.skyveil.client.chatcopy.ChatCopyBinding)v),null,java.util.List.of());
     }
     public static SettingDefinition choice(String key,String name,String description,java.util.List<String> choices,Supplier<String> get,Consumer<String> set){
         return new SettingDefinition(key,name,description,description,Type.CHOICE,0,0,()->get.get(),v->set.accept((String)v),null,java.util.List.copyOf(choices));

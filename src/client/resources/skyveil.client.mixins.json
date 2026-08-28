@@ -5,6 +5,8 @@
 	"client": [
 		"CameraMixin",
 		"MouseHandlerMixin",
+		"ChatComponentAccessor",
+		"ChatScreenMixin",
 		"AbstractContainerScreenMixin",
 		"AbstractRecipeBookScreenMixin",
 		"LocalPlayerMixin",
@@ -20,6 +22,7 @@
 		"ScreenWidgetAccessor",
 		"InventoryScreenMixin",
 		"ClientLevelEntityMixin",
+		"MultiPlayerGameModeMixin",
 		"EntityDataMixin",
 		"EntityRendererMixin"
 	],

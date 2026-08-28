@@ -1,5 +1,6 @@
 package name.skyveil.client.mixin;
 
+import name.skyveil.client.SkyblockSession;
 import name.skyveil.client.config.ConfigManager;
 import name.skyveil.client.inventorybuttons.InventoryButtonRenderer;
 import name.skyveil.client.gui.ContainerDarkModeRenderer;
@@ -20,17 +21,19 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class InventoryScreenMixin {
     @Redirect(method="extractRenderState",at=@At(value="INVOKE",target="Lnet/minecraft/client/gui/screens/inventory/EffectsInInventory;extractRenderState(Lnet/minecraft/client/gui/GuiGraphicsExtractor;II)V"))
     private void skyveil$conditionallyDrawPotionEffects(EffectsInInventory effects,GuiGraphicsExtractor graphics,int mouseX,int mouseY){
-        if(ConfigManager.get().inventoryButtons.showPotionEffects)effects.extractRenderState(graphics,mouseX,mouseY);
+        if(!SkyblockSession.isActive()||ConfigManager.get().inventoryButtons.showPotionEffects)effects.extractRenderState(graphics,mouseX,mouseY);
     }
 
     @Inject(method="extractBackground",at=@At(value="INVOKE",target="Lnet/minecraft/client/gui/screens/inventory/InventoryScreen;extractEntityInInventoryFollowsMouse(Lnet/minecraft/client/gui/GuiGraphicsExtractor;IIIIIFFFLnet/minecraft/world/entity/LivingEntity;)V",shift=At.Shift.BEFORE))
     private void skyveil$darkenBeforePlayerModel(GuiGraphicsExtractor graphics,int mouseX,int mouseY,float partialTick,CallbackInfo ci){
+        if(!SkyblockSession.isActive())return;
         ContainerScreenAccessor screen=(ContainerScreenAccessor)this;
         ContainerDarkModeRenderer.render(graphics,screen.skyveil$getLeftPos(),screen.skyveil$getTopPos(),screen.skyveil$getImageWidth(),screen.skyveil$getImageHeight());
     }
 
     @Inject(method="extractRenderState",at=@At("TAIL"))
     private void skyveil$drawInventoryButtonsLast(GuiGraphicsExtractor graphics,int mouseX,int mouseY,float partialTick,CallbackInfo ci){
+        if(!SkyblockSession.isActive())return;
         ContainerScreenAccessor screen=(ContainerScreenAccessor)this;
         EquipmentShortcutRow.render(graphics,screen.skyveil$getLeftPos(),screen.skyveil$getTopPos(),mouseX,mouseY);
         InventoryButtonRenderer.render((Screen)(Object)this,graphics,screen.skyveil$getLeftPos(),screen.skyveil$getTopPos(),screen.skyveil$getImageWidth(),screen.skyveil$getImageHeight(),mouseX,mouseY);

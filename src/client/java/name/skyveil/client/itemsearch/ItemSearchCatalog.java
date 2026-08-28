@@ -49,6 +49,8 @@ final class ItemSearchCatalog {
     static boolean matchesLore(ItemStack stack,String input){ItemLore lore=stack==null?null:stack.get(DataComponents.LORE);return lore!=null&&matchesLore(lore.lines(),input);}
     static boolean matchesLore(List<Component> lore,String input){String query=normalize(loreQuery(input));if(!isLoreSearch(input)||query.isBlank()||lore==null||lore.isEmpty())return false;StringBuilder tooltip=new StringBuilder();for(Component line:lore)tooltip.append(line.getString()).append(' ');return normalize(tooltip.toString()).contains(query);}
     static int size(){return entries().size();}
+    static Entry entryByInternalName(String internalName){if(internalName==null||internalName.isBlank())return null;for(Entry entry:entries())if(entry.internalName().equalsIgnoreCase(internalName))return entry;return null;}
+    static ItemStack stackByInternalName(String internalName){Entry entry=entryByInternalName(internalName);return entry==null?ItemStack.EMPTY:entry.stack().copy();}
     static List<Entry> headEntries(){return entries().stream().filter(Entry::hasHeadTexture).toList();}
     static List<Entry> allEntries(){return entries();}
     private static boolean matches(String value,String[] terms){for(String term:terms)if(!value.contains(term))return false;return true;}

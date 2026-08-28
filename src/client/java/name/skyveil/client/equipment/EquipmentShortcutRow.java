@@ -1,19 +1,18 @@
 package name.skyveil.client.equipment;
 
 import com.mojang.serialization.DynamicOps;
+import name.skyveil.client.cache.SkyveilCacheManager;
 import name.skyveil.client.gui.ContainerDarkModeRenderer;
 import name.skyveil.client.hunting.AttributeShardResolver;
 import name.skyveil.client.inventorybuttons.InventoryButtonManager;
 import name.skyveil.client.itemrarity.ItemRarityRenderer;
 import name.skyveil.client.itemsearch.SkyBlockEquipmentCatalog;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.NbtIo;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
@@ -23,9 +22,6 @@ import net.minecraft.world.item.ItemStack;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
@@ -38,10 +34,13 @@ public final class EquipmentShortcutRow {
     private static final ItemStack[] EQUIPPED={ItemStack.EMPTY,ItemStack.EMPTY,ItemStack.EMPTY,ItemStack.EMPTY};
     private static Object connection;
     private static String loadedAccount;
+    private static boolean dirty;
+    private static int observedContainer=-1;
+    private static boolean observationDirty=true;
     private EquipmentShortcutRow(){}
 
     public static void observe(AbstractContainerScreen<?> screen){
-        if(screen==null||!matchesMenuTitle(screen.getTitle().getString()))return;Minecraft client=Minecraft.getInstance();refreshAccount(client);int before=fingerprint();String title=normalizeTitle(screen.getTitle().getString());
+        if(screen==null||!matchesMenuTitle(screen.getTitle().getString()))return;int container=screen.getMenu().containerId;if(container!=observedContainer){observedContainer=container;observationDirty=true;}if(!observationDirty)return;observationDirty=false;Minecraft client=Minecraft.getInstance();if(client.player==null||!client.player.getUUID().toString().equals(loadedAccount))return;int before=fingerprint();String title=normalizeTitle(screen.getTitle().getString());
         if(title.contains("equipment sets")){Integer selected=selectedEquipmentSetColumn(screen);if(selected!=null&&observeColumn(screen,selected,true)){saveIfChanged(client,before);return;}}
         else if((title.contains("loadouts")||title.equals("your equipment and stats"))&&observeColumn(screen,1,true)){saveIfChanged(client,before);return;}
         ItemStack[] found={ItemStack.EMPTY,ItemStack.EMPTY,ItemStack.EMPTY,ItemStack.EMPTY};int[] scores={Integer.MIN_VALUE,Integer.MIN_VALUE,Integer.MIN_VALUE,Integer.MIN_VALUE};
@@ -67,7 +66,13 @@ public final class EquipmentShortcutRow {
         return true;
     }
 
-    public static void render(GuiGraphicsExtractor graphics,int guiLeft,int guiTop,int mouseX,int mouseY){Minecraft client=Minecraft.getInstance();refreshAccount(client);int x=guiLeft+77,y=guiTop+8;var palette=ContainerDarkModeRenderer.controlPalette();
+    public static void tick(Minecraft client){refreshAccount(client);}
+    public static void onContainerUpdate(int containerId){if(containerId==observedContainer)observationDirty=true;}
+    public static void screenClosed(AbstractContainerScreen<?> screen){if(screen!=null&&screen.getMenu().containerId==observedContainer){observedContainer=-1;observationDirty=true;}}
+    public static void shutdown(Minecraft client){flushToCache(client);}
+    public static void disconnect(Minecraft client){flushToCache(client);connection=null;loadedAccount=null;dirty=false;observedContainer=-1;observationDirty=true;clear();}
+
+    public static void render(GuiGraphicsExtractor graphics,int guiLeft,int guiTop,int mouseX,int mouseY){Minecraft client=Minecraft.getInstance();int x=guiLeft+77,y=guiTop+8;var palette=ContainerDarkModeRenderer.controlPalette();
         // Vanilla's offhand artwork extends outside its logical 18x18 slot. Cover the
         // complete column first so its frame cannot show around the equipment slots.
         graphics.fill(x-1,y-1,x+19,y+73,palette.panel());
@@ -84,13 +89,13 @@ public final class EquipmentShortcutRow {
     private static String itemPath(ItemStack stack){if(stack==null||stack.isEmpty())return "";var key=BuiltInRegistries.ITEM.getKey(stack.getItem());return key==null?"":key.getPath();}
     private static boolean word(String line,String value){return (" "+line+" ").contains(" "+value+" ");}
     private static void refreshAccount(Minecraft client){
-        Object current=client.getConnection();if(connection!=current){connection=current;loadedAccount=null;clear();}
-        if(client.player==null||client.level==null)return;String account=client.player.getUUID().toString();if(account.equals(loadedAccount))return;
-        loadedAccount=account;clear();load(client);
+        if(client==null||!SkyveilCacheManager.isLoaded())return;Object current=client.getConnection();if(connection!=current){if(loadedAccount!=null&&dirty)flushToCache(client);connection=current;loadedAccount=null;clear();}
+        if(client.player==null||client.level==null)return;String account=client.player.getUUID().toString();if(account.equals(loadedAccount))return;if(loadedAccount!=null&&dirty)flushToCache(client);
+        loadedAccount=account;clear();load(client);dirty=false;
     }
-    private static void load(Minecraft client){Path path=cachePath();if(!Files.isRegularFile(path))return;try{CompoundTag root=NbtIo.read(path);if(root==null||root.getIntOr("schema",0)!=CACHE_SCHEMA)return;DynamicOps<Tag> ops=RegistryOps.create(NbtOps.INSTANCE,client.level.registryAccess());ListTag items=root.getListOrEmpty("items");for(int index=0;index<items.size();index++){CompoundTag saved=items.getCompoundOrEmpty(index);int slot=saved.getIntOr("slot",-1);if(slot<0||slot>=EQUIPPED.length||saved.get("stack")==null)continue;EQUIPPED[slot]=ItemStack.CODEC.parse(ops,saved.get("stack")).result().orElse(ItemStack.EMPTY);}}catch(Exception exception){LOGGER.warn("Could not load equipment showcase {}",path,exception);}}
-    private static void saveIfChanged(Minecraft client,int before){if(before==fingerprint()||loadedAccount==null||client.level==null)return;try{Path path=cachePath();Files.createDirectories(path.getParent());DynamicOps<Tag> ops=RegistryOps.create(NbtOps.INSTANCE,client.level.registryAccess());CompoundTag root=new CompoundTag();root.putInt("schema",CACHE_SCHEMA);ListTag items=new ListTag();for(int slot=0;slot<EQUIPPED.length;slot++){ItemStack stack=EQUIPPED[slot];if(stack.isEmpty())continue;CompoundTag saved=new CompoundTag();saved.putInt("slot",slot);saved.put("stack",ItemStack.CODEC.encodeStart(ops,stack).getOrThrow());items.add(saved);}root.put("items",items);Path temporary=path.resolveSibling(path.getFileName()+".tmp");NbtIo.write(root,temporary);try{Files.move(temporary,path,StandardCopyOption.REPLACE_EXISTING,StandardCopyOption.ATOMIC_MOVE);}catch(Exception unsupported){Files.move(temporary,path,StandardCopyOption.REPLACE_EXISTING);}}catch(Exception exception){LOGGER.warn("Could not save equipment showcase",exception);}}
-    private static Path cachePath(){return FabricLoader.getInstance().getConfigDir().resolve("skyveil").resolve("equipment_showcase").resolve((loadedAccount==null?"unknown":loadedAccount)+".nbt");}
+    private static void load(Minecraft client){CompoundTag root=SkyveilCacheManager.profileSection(loadedAccount,"equipment");if(root==null||root.getIntOr("schema",0)!=CACHE_SCHEMA)return;try{DynamicOps<Tag> ops=RegistryOps.create(NbtOps.INSTANCE,client.level.registryAccess());ListTag items=root.getListOrEmpty("items");for(int index=0;index<Math.min(items.size(),EQUIPPED.length);index++){CompoundTag saved=items.getCompoundOrEmpty(index);int slot=saved.getIntOr("slot",-1);if(slot<0||slot>=EQUIPPED.length||saved.get("stack")==null)continue;EQUIPPED[slot]=ItemStack.CODEC.parse(ops,saved.get("stack")).result().orElse(ItemStack.EMPTY);}}catch(Exception exception){LOGGER.warn("Could not restore equipment showcase",exception);}}
+    private static void saveIfChanged(Minecraft client,int before){if(before!=fingerprint()&&loadedAccount!=null)dirty=true;}
+    private static void flushToCache(Minecraft client){if(!dirty||loadedAccount==null||client==null||client.level==null)return;try{DynamicOps<Tag> ops=RegistryOps.create(NbtOps.INSTANCE,client.level.registryAccess());CompoundTag root=new CompoundTag();root.putInt("schema",CACHE_SCHEMA);ListTag items=new ListTag();for(int slot=0;slot<EQUIPPED.length;slot++){ItemStack stack=EQUIPPED[slot];if(stack.isEmpty())continue;CompoundTag saved=new CompoundTag();saved.putInt("slot",slot);saved.put("stack",ItemStack.CODEC.encodeStart(ops,stack).getOrThrow());items.add(saved);}root.put("items",items);SkyveilCacheManager.putProfileSection(loadedAccount,"equipment",root);dirty=false;}catch(Exception exception){LOGGER.warn("Could not prepare equipment showcase cache",exception);}}
     private static int fingerprint(){int value=1;for(ItemStack stack:EQUIPPED){value=31*value+stack.getCount();value=31*value+ItemStack.hashItemAndComponents(stack);}return value;}
     private static void clear(){for(int index=0;index<EQUIPPED.length;index++)EQUIPPED[index]=ItemStack.EMPTY;}
     private static boolean inside(double mouseX,double mouseY,int x,int y,int width,int height){return mouseX>=x&&mouseX<x+width&&mouseY>=y&&mouseY<y+height;}

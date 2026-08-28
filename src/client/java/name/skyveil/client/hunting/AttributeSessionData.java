@@ -1,5 +1,6 @@
 package name.skyveil.client.hunting;
 
+import name.skyveil.client.cache.SkyveilCacheManager;
 import net.minecraft.client.Minecraft;
 
 import java.util.HashMap;
@@ -25,7 +26,7 @@ final class AttributeSessionData {
     private AttributeSessionData(){}
     static void ensureWorld(){Minecraft client=Minecraft.getInstance();if(client==null||client.player==null)return;ensurePersistentScope(client.player.getUUID().toString());}
     static void ensureScope(Object current){if(current!=scope||persistentAccount!=null){scope=current;persistentAccount=null;clear();}}
-    private static void ensurePersistentScope(String account){if(account.equals(persistentAccount))return;scope=account;persistentAccount=account;clear();restore(AttributeProgressStore.load(account));}
+    private static void ensurePersistentScope(String account){if(account.equals(persistentAccount)||!SkyveilCacheManager.isLoaded())return;scope=account;persistentAccount=account;clear();restore(AttributeProgressStore.load(account));}
     private static void clear(){OWNED.clear();OWNED_PAGE_PRODUCTS.clear();PROGRESS.clear();VISITED_PAGES.clear();totalPages=1;revision++;}
     private static void restore(AttributeProgressStore.Snapshot snapshot){
         OWNED.putAll(snapshot.owned());VISITED_PAGES.addAll(snapshot.visitedPages());totalPages=Math.max(1,snapshot.totalPages());

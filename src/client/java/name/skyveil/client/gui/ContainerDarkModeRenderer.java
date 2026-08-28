@@ -1,5 +1,6 @@
 package name.skyveil.client.gui;
 
+import name.skyveil.client.SkyblockSession;
 import name.skyveil.client.config.ConfigManager;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 
@@ -8,6 +9,7 @@ public final class ContainerDarkModeRenderer {
     private ContainerDarkModeRenderer() {}
 
     public static void render(GuiGraphicsExtractor graphics,int left,int top,int width,int height){
+        if(!SkyblockSession.isActive())return;
         int tint=switch(ConfigManager.get().darkMode){
             case "DARK"->0xA814171C;
             case "DARK_PURPLE"->0xB810091A;
@@ -16,7 +18,7 @@ public final class ContainerDarkModeRenderer {
         if(tint!=0)graphics.fill(left,top,left+width,top+height,tint);
     }
 
-    public static int labelColor(int vanilla){return "DEFAULT".equals(ConfigManager.get().darkMode)?vanilla:0xFFF4F2F7;}
+    public static int labelColor(int vanilla){return !SkyblockSession.isActive()||"DEFAULT".equals(ConfigManager.get().darkMode)?vanilla:0xFFF4F2F7;}
 
     /** Opaque companion colors for custom controls drawn beside the tinted vanilla GUI. */
     public static ControlPalette controlPalette(){return controlPalette(ConfigManager.get().darkMode);}

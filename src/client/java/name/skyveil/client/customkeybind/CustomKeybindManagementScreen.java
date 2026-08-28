@@ -32,7 +32,7 @@ public final class CustomKeybindManagementScreen extends Screen {
         g.fill(0,0,width,height,SkyveilTheme.SCRIM);g.fill(left,top,left+panelWidth,top+panelHeight,SkyveilTheme.WINDOW);g.outline(left,top,panelWidth,panelHeight,SkyveilTheme.ACCENT);
         g.centeredText(font,title,width/2,top+10,SkyveilTheme.TEXT);actions.clear();
         int viewTop=top+62,viewBottom=top+panelHeight-14,rowWidth=panelWidth-24;
-        g.enableScissor(left+12,viewTop,left+panelWidth-12,viewBottom);
+        g.enableScissor(left+12,viewTop,left+panelWidth-12,viewBottom);try{
         List<CustomKeybindDefinition> bindings=CustomKeybindManager.all();int y=viewTop-(int)scroll;
         if(bindings.isEmpty())g.centeredText(font,"No custom keybinds configured.",width/2,y+18,SkyveilTheme.SECONDARY);
         for(CustomKeybindDefinition binding:bindings){
@@ -44,7 +44,7 @@ public final class CustomKeybindManagementScreen extends Screen {
             drawControl(g,editX,y+13,42,"Edit",SkyveilTheme.ACCENT_DARK);drawControl(g,deleteX,y+13,48,"Delete",0xFF8E3D55);
             if(y+48>=viewTop&&y<viewBottom){actions.add(new RowAction(toggleX,y+13,42,22,Action.TOGGLE,binding));actions.add(new RowAction(editX,y+13,42,22,Action.EDIT,binding));actions.add(new RowAction(deleteX,y+13,48,22,Action.DELETE,binding));}y+=55;
         }
-        g.disableScissor();
+        }finally{g.disableScissor();}
         if(!message.isBlank())g.centeredText(font,message,width/2,top+panelHeight-11,0xFFFF7777);
         super.extractRenderState(g,mx,my,partial);
     }

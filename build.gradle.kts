@@ -200,10 +200,8 @@ tasks.register<Sync>("release") {
 			check(names.intersect(removedEntries).isEmpty()) {
 				"Release JAR contains removed feature resources or mixins: ${names.intersect(removedEntries)}"
 			}
-			val mapIds = listOf("hub", "gold_mine", "deep_caverns", "dwarven_mines", "park", "spiders_den", "the_end", "crimson_isle", "farming_islands", "dungeon_hub")
-			mapIds.forEach { id ->
-				check("assets/skyveil/textures/maps/$id.png" in names) { "Release JAR is missing generated map texture $id.png" }
-				check("assets/skyveil/data/maps/$id.json" in names) { "Release JAR is missing map definition $id.json" }
+			check(names.none { it.startsWith("name/skyveil/client/map/") || it.startsWith("assets/skyveil/textures/maps/") || it.startsWith("assets/skyveil/data/maps/") }) {
+				"Release JAR contains removed Map feature classes or resources"
 			}
 			check(names.none { it.endsWith(".mca") || it.endsWith(".zip") || it.endsWith("/level.dat") }) {
 				"Release JAR must not contain raw Minecraft world data"

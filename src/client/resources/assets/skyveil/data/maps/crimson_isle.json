@@ -1,8 +1,0 @@
-{
-  "id":"crimson_isle","displayName":"Crimson Isle","texture":"skyveil:textures/maps/crimson_isle.png",
-  "attribution":"World download by KimiD2007 via Hypixel Forums; generated from DIM-1 with the bedrock shell omitted and a documented world-coordinate island mask",
-  "imageWidth":843,"imageHeight":712,"minX":-784,"maxX":59,"minZ":-1103,"maxZ":-391,
-  "orientation":"north=-Z, image top=minZ; east=+X, image right=maxX","pixelsPerBlock":1,
-  "sourceWorldDownload":"https://www.mediafire.com/file/b0k3ax1dnytheog/The_Crimson_Isle.zip/file",
-  "aliases":["area: crimson isle","area: stronghold","area: mage outpost","area: barbarian outpost","area: the wasteland","area: burning desert","area: cathedral","area: dragontail","area: scarleton","area: kuudra's hollow","area: forgotten skull","area: dojo","area: mystic marsh","area: blazing volcano","area: ruins of ashfang","area: smoldering tomb","area: matriarch's lair"],"npcs":[],"zones":[]
-}

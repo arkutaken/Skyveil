@@ -1,2 +1,3 @@
-Inventory Buttons are now fully hidden and non-interactive while Storage Preview is active.
-Invisible buttons can no longer run commands behind Storage, Ender Chest, or Backpack previews.
+Compact Damage now hides excluded secondary damage indicators instead of leaving them over the mob.
+Disabled sources are ignored by the five-melee-hit average.
+Enabled sources are merged into their melee sample without consuming another hit slot.

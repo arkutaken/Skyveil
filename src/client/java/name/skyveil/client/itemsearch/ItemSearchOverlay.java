@@ -11,12 +11,15 @@ import net.minecraft.world.item.ItemStack;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.List;
+import java.util.Map;
+import java.util.WeakHashMap;
 
 /** Inventory-attached search field and right-hand SkyBlock item result grid. */
 public final class ItemSearchOverlay {
     private static final int CELL_WIDTH=152,CELL_HEIGHT=28,MAX_RESULTS=800;
     private static final long AUCTION_QUERY_TTL_NANOS=15_000_000_000L;
     private static AbstractContainerScreen<?> screen;private static EditBox field;private static List<ItemSearchCatalog.Entry> results=List.of();private static String lastQuery="";private static int scrollRow;private static Bounds bounds;
+    private static final Map<ItemStack,Boolean> LORE_MATCHES=new WeakHashMap<>();
     private static String rememberedAuctionLore="";private static long rememberedAuctionAt;
     private ItemSearchOverlay(){}
 
@@ -24,7 +27,7 @@ public final class ItemSearchOverlay {
         reset();boolean auction=isAuctionTitle(owner.getTitle().getString()),restore=auction&&!rememberedAuctionLore.isBlank()&&System.nanoTime()-rememberedAuctionAt<=AUCTION_QUERY_TTL_NANOS;if(!auction){rememberedAuctionLore="";rememberedAuctionAt=0;}screen=owner;int width=Math.min(240,Math.max(140,owner.width-16)),x=(owner.width-width)/2,y=Math.min(owner.height-22,guiTop+guiHeight+108);
         field=new EditBox(Minecraft.getInstance().font,x,y,width,18,net.minecraft.network.chat.Component.literal("Item Search"));field.setMaxLength(80);field.setHint(net.minecraft.network.chat.Component.literal("Search items or lore:text"));field.setResponder(ItemSearchOverlay::filter);if(restore)field.setValue(rememberedAuctionLore);field.setFocused(false);return field;
     }
-    private static void filter(String value){String query=value==null?"":value.trim();lastQuery=query;results=query.isBlank()||ItemSearchCatalog.isLoreSearch(query)?List.of():ItemSearchCatalog.search(query);scrollRow=0;rememberAuctionQuery(query);}
+    private static void filter(String value){String query=value==null?"":value.trim();lastQuery=query;results=query.isBlank()||ItemSearchCatalog.isLoreSearch(query)?List.of():ItemSearchCatalog.search(query);LORE_MATCHES.clear();scrollRow=0;rememberAuctionQuery(query);}
     public static void render(AbstractContainerScreen<?> owner,GuiGraphicsExtractor graphics,int mouseX,int mouseY){
         if(owner!=screen||field==null){bounds=null;return;}String query=field.getValue().trim();if(!query.equals(lastQuery))filter(query);
         if(query.isBlank()||ItemSearchCatalog.isLoreSearch(query)){bounds=null;return;}
@@ -41,8 +44,8 @@ public final class ItemSearchOverlay {
     public static boolean blurOnOutsideClick(AbstractContainerScreen<?> owner,double mouseX,double mouseY){if(owner!=screen||field==null||!field.isFocused()||inside(mouseX,mouseY,field.getX(),field.getY(),field.getWidth(),field.getHeight()))return false;field.setFocused(false);return true;}
     public static boolean mouseClicked(AbstractContainerScreen<?> owner,double mouseX,double mouseY,int button){if(owner!=screen||bounds==null||!bounds.contains(mouseX,mouseY))return false;ItemSearchCatalog.Entry entry=resultAt(mouseX,mouseY);if(button==0&&entry!=null&&entry.craftable())InventoryButtonManager.executeCommand("recipe "+entry.recipeQuery());return true;}
     public static boolean mouseScrolled(AbstractContainerScreen<?> owner,double mouseX,double mouseY,double vertical){if(owner!=screen||bounds==null||!bounds.contains(mouseX,mouseY)||bounds.maxScroll==0)return false;if(vertical>0)scrollRow=Math.max(0,scrollRow-1);else if(vertical<0)scrollRow=Math.min(bounds.maxScroll,scrollRow+1);return vertical!=0;}
-    public static void drawLoreMatch(GuiGraphicsExtractor graphics,ItemStack stack,int x,int y){if(field==null||screen==null||stack==null||stack.isEmpty()||!ItemSearchCatalog.matchesLore(stack,field.getValue()))return;graphics.fill(x,y,x+16,y+16,0xA838A848);graphics.outline(x,y,16,16,0xFF63E875);}
-    public static void reset(){if(field!=null)rememberAuctionQuery(field.getValue().trim());screen=null;field=null;results=List.of();lastQuery="";scrollRow=0;bounds=null;}
+    public static void drawLoreMatch(GuiGraphicsExtractor graphics,ItemStack stack,int x,int y){if(field==null||screen==null||stack==null||stack.isEmpty()||!ItemSearchCatalog.isLoreSearch(lastQuery)||!LORE_MATCHES.computeIfAbsent(stack,item->ItemSearchCatalog.matchesLore(item,lastQuery)))return;graphics.fill(x,y,x+16,y+16,0xA838A848);graphics.outline(x,y,16,16,0xFF63E875);}
+    public static void reset(){if(field!=null)rememberAuctionQuery(field.getValue().trim());screen=null;field=null;results=List.of();LORE_MATCHES.clear();lastQuery="";scrollRow=0;bounds=null;}
     private static void rememberAuctionQuery(String query){if(screen==null||!isAuctionTitle(screen.getTitle().getString()))return;if(ItemSearchCatalog.isLoreSearch(query)&&query.length()>5){rememberedAuctionLore=query;rememberedAuctionAt=System.nanoTime();}else{rememberedAuctionLore="";rememberedAuctionAt=0;}}
     static boolean isAuctionTitle(String title){return title!=null&&title.toLowerCase(java.util.Locale.ROOT).contains("auction");}
     static int catalogSize(){return ItemSearchCatalog.size();}

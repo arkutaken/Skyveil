@@ -1,5 +1,6 @@
 package name.skyveil.client.mixin;
 
+import name.skyveil.client.SkyblockSession;
 import name.skyveil.client.itemprotection.ItemLockOverlayRenderer;
 import name.skyveil.client.itemprotection.ItemProtectionManager;
 import name.skyveil.client.itemrarity.ItemRarityRenderer;
@@ -18,11 +19,13 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class GuiMixin {
     @Inject(method="extractSlot",at=@At("HEAD"))
     private void skyveil$drawHotbarRarity(GuiGraphicsExtractor graphics,int x,int y,DeltaTracker delta,Player player,ItemStack stack,int seed,CallbackInfo ci){
+        if(!SkyblockSession.isActive())return;
         ItemRarityRenderer.drawBelowItem(graphics,stack,x,y);
     }
 
     @Inject(method="extractSlot",at=@At("TAIL"))
     private void skyveil$drawHotbarLock(GuiGraphicsExtractor graphics,int x,int y,DeltaTracker delta,Player player,ItemStack stack,int seed,CallbackInfo ci){
+        if(!SkyblockSession.isActive())return;
         int slot=seed-1;
         if(slot>=0&&slot<9&&ItemProtectionManager.isLocked(slot))ItemLockOverlayRenderer.draw(graphics,x,y);
     }

@@ -1,5 +1,6 @@
 package name.skyveil.client.mixin;
 
+import name.skyveil.client.SkyblockSession;
 import name.skyveil.client.inventorybuttons.InventoryButtonRenderer;
 import name.skyveil.client.equipment.EquipmentShortcutRow;
 import net.minecraft.client.gui.screens.Screen;
@@ -16,6 +17,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class AbstractRecipeBookScreenMixin {
     @Inject(method="mouseClicked",at=@At("HEAD"),cancellable=true)
     private void skyveil$clickInventoryButtonFirst(MouseButtonEvent event,boolean doubleClick,CallbackInfoReturnable<Boolean> cir){
+        if(!SkyblockSession.isActive())return;
         if(!((Object)this instanceof InventoryScreen))return;
         ContainerScreenAccessor screen=(ContainerScreenAccessor)this;
         if(EquipmentShortcutRow.mouseClicked(screen.skyveil$getLeftPos(),screen.skyveil$getTopPos(),event.x(),event.y(),event.button())){cir.setReturnValue(true);return;}

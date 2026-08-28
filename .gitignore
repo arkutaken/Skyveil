@@ -34,11 +34,6 @@ bin/
 run/
 logs/
 
-# Development-only Hypixel world downloads used by tools/map-generator.
-dev/map_sources/
-dev/map-generator-classes/
-dev/generated_maps/
-
 # java
 
 hs_err_*.log

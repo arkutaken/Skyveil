@@ -1,8 +1,0 @@
-{
-  "id":"dungeon_hub","displayName":"Dungeon Hub","texture":"skyveil:textures/maps/dungeon_hub.png",
-  "attribution":"World download by KimiD2007 via Hypixel Forums; generated with reviewed stone and gray roof materials omitted",
-  "imageWidth":172,"imageHeight":244,"minX":-145,"maxX":27,"minZ":-96,"maxZ":148,
-  "orientation":"north=-Z, image top=minZ; east=+X, image right=maxX","pixelsPerBlock":1,
-  "sourceWorldDownload":"https://www.mediafire.com/file/wg1zuuqi392evvb/The_Dungeon_Hub.zip/file",
-  "aliases":["area: dungeon hub","area: catacombs entrance"],"npcs":[],"zones":[]
-}

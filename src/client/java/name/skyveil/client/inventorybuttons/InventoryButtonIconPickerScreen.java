@@ -44,8 +44,8 @@ public final class InventoryButtonIconPickerScreen extends Screen {
         search.setHint(Component.literal("Search Minecraft items"));
         search.setResponder(value -> filter());
         addRenderableWidget(search);
-        int sourceWidth=(panelWidth-28)/2;vanillaButton=addRenderableWidget(Button.builder(Component.literal("Vanilla Items"),button->setSource(Source.VANILLA)).bounds(left+12,59,sourceWidth,20).build());
-        headsButton=addRenderableWidget(Button.builder(Component.literal("SkyBlock Heads"),button->setSource(Source.SKYBLOCK_HEADS)).bounds(left+16+sourceWidth,59,sourceWidth,20).build());
+        int sourceWidth=(panelWidth-28)/2;vanillaButton=addRenderableWidget(new name.skyveil.client.gui.SkyveilButton(left+12,59,sourceWidth,20,Component.literal("Vanilla Items"),button->setSource(Source.VANILLA)));
+        headsButton=addRenderableWidget(new name.skyveil.client.gui.SkyveilButton(left+16+sourceWidth,59,sourceWidth,20,Component.literal("SkyBlock Heads"),button->setSource(Source.SKYBLOCK_HEADS)));
         updateSourceButtons();
         filter();
         setInitialFocus(search);
@@ -88,7 +88,7 @@ public final class InventoryButtonIconPickerScreen extends Screen {
         graphics.fill(0, 0, width, height, SkyveilTheme.SCRIM);
         graphics.fill(left, top, left + panelWidth, bottom, SkyveilTheme.WINDOW);
         graphics.outline(left, top, panelWidth, bottom - top, SkyveilTheme.ACCENT);
-        graphics.centeredText(font, title, width / 2, top + 8, SkyveilTheme.TEXT);
+        graphics.centeredText(font, title, width / 2, top + 8, SkyveilTheme.ACCENT);
         Grid grid = grid(left, panelWidth);
         int first = scrollRow * grid.columns;
         int visible = grid.columns * grid.rows;

@@ -35,14 +35,14 @@ public final class InventoryButtonEditorScreen extends Screen {
         commandBox.setValue(draft.command == null ? "" : draft.command);
         addRenderableWidget(commandBox);
 
-        addRenderableWidget(Button.builder(Component.literal("Choose Icon"), button -> openIconPicker()).bounds(left + 12, top + 68, 90, 20).build());
+        addRenderableWidget(new name.skyveil.client.gui.SkyveilButton(left + 12, top + 68, 90, 20,Component.literal("Choose Icon"), button -> openIconPicker()));
         if (existing != null) {
-            addRenderableWidget(Button.builder(Component.literal("Save"), button -> save()).bounds(left + 12, top + 108, 68, 20).build());
-            addRenderableWidget(Button.builder(Component.literal("Cancel"), button -> onClose()).bounds(left + 88, top + 108, 68, 20).build());
-            addRenderableWidget(Button.builder(Component.literal("Delete"), button -> delete()).bounds(left + 164, top + 108, 68, 20).build());
+            addRenderableWidget(new name.skyveil.client.gui.SkyveilButton(left + 12, top + 108, 68, 20,Component.literal("Save"), button -> save()));
+            addRenderableWidget(new name.skyveil.client.gui.SkyveilButton(left + 88, top + 108, 68, 20,Component.literal("Cancel"), button -> onClose()));
+            addRenderableWidget(new name.skyveil.client.gui.SkyveilButton(left + 164, top + 108, 68, 20,Component.literal("Delete"), button -> delete()));
         } else {
-            addRenderableWidget(Button.builder(Component.literal("Save"), button -> save()).bounds(left + 12, top + 108, 104, 20).build());
-            addRenderableWidget(Button.builder(Component.literal("Cancel"), button -> onClose()).bounds(left + 128, top + 108, 104, 20).build());
+            addRenderableWidget(new name.skyveil.client.gui.SkyveilButton(left + 12, top + 108, 104, 20,Component.literal("Save"), button -> save()));
+            addRenderableWidget(new name.skyveil.client.gui.SkyveilButton(left + 128, top + 108, 104, 20,Component.literal("Cancel"), button -> onClose()));
         }
         setInitialFocus(commandBox);
     }
@@ -84,7 +84,7 @@ public final class InventoryButtonEditorScreen extends Screen {
         graphics.fill(0, 0, width, height, SkyveilTheme.SCRIM);
         graphics.fill(left, top, left + 244, top + 154, SkyveilTheme.WINDOW);
         graphics.outline(left, top, 244, 154, SkyveilTheme.ACCENT);
-        graphics.centeredText(font, title, width / 2, top + 10, SkyveilTheme.TEXT);
+        graphics.centeredText(font, title, width / 2, top + 10, SkyveilTheme.ACCENT);
         graphics.text(font, "Command", left + 12, top + 27, SkyveilTheme.SECONDARY, false);
         graphics.fill(left + 112, top + 67, left + 134, top + 89, SkyveilTheme.CARD);
         graphics.outline(left + 112, top + 67, 22, 22, SkyveilTheme.OUTLINE);

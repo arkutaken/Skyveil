@@ -43,10 +43,8 @@ public final class ItemProtectionManager {
     }
     public static void toggle(int inventorySlot){
         if(inventorySlot<0)return;
-        boolean locked;
-        if(ConfigManager.get().lockedInventorySlots.remove(inventorySlot))locked=false;
-        else {ConfigManager.get().lockedInventorySlots.add(inventorySlot);locked=true;}
-        ConfigManager.save();chat(locked?"Your item is protected!":"Your item is no longer protected!");
+        if(!ConfigManager.get().lockedInventorySlots.remove(inventorySlot))ConfigManager.get().lockedInventorySlots.add(inventorySlot);
+        ConfigManager.save();
     }
     public static void toggle(Slot slot){toggle(playerInventoryIndex(slot));}
     public static boolean handleLinkClick(Slot slot){
@@ -119,7 +117,7 @@ public final class ItemProtectionManager {
         show("Skyveil: This item is locked.");
     }
     private static void show(String text){Minecraft client=Minecraft.getInstance();if(client.gui!=null)client.gui.setOverlayMessage(Component.literal(text),false);}
-    private static void chat(String text){Minecraft client=Minecraft.getInstance();if(client.player!=null)client.player.sendSystemMessage(gradientPrefix().append(Component.literal(" "+text).withStyle(ChatFormatting.WHITE)));}
+    static void chat(String text){Minecraft client=Minecraft.getInstance();if(client.player!=null)client.player.sendSystemMessage(gradientPrefix().append(Component.literal(" "+text).withStyle(ChatFormatting.WHITE)));}
     private static MutableComponent gradientPrefix(){
         String prefix="[Skyveil]";int dark=0x673AB7,bright=0xC995FF;MutableComponent result=Component.empty();
         for(int i=0;i<prefix.length();i++){

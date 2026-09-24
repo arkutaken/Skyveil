@@ -20,6 +20,7 @@ import name.skyveil.client.hunting.HuntingBoxValuePanel;
 import name.skyveil.client.hunting.ShardPriceService;
 import name.skyveil.client.pet.PetDisplayHud;
 import name.skyveil.client.pet.PetTracker;
+import name.skyveil.client.slayer.VoidgloomOverlay;
 import name.skyveil.client.wardrobe.WardrobeKeybindHandler;
 import name.skyveil.client.update.ReleaseNoticeManager;
 import name.skyveil.client.update.GitHubUpdateManager;
@@ -47,31 +48,33 @@ public final class SkyveilClientEntrypoint implements ClientModInitializer {
         initialized=true;
         long started=System.nanoTime();
         LOGGER.info("Skyveil client initialization started");
-        ConfigManager.load();SkyveilCacheManager.initialize();AttributeProgressStore.initialize();ShardPriceService.initialize();ReleaseNoticeManager.initialize();GitHubUpdateManager.initialize();LOGGER.info("Skyveil configuration and runtime cache loading started");
-        SettingsRegistry.registerDefaults();SearchManager.initialize();
+        ConfigManager.load();SkyveilCacheManager.initialize();name.skyveil.client.auction.AuctionPrices.initialize();AttributeProgressStore.initialize();ShardPriceService.initialize();ReleaseNoticeManager.initialize();GitHubUpdateManager.initialize();LOGGER.info("Skyveil configuration and runtime cache loading started");
+        SettingsRegistry.registerDefaults();SearchManager.initialize();name.skyveil.client.auction.AuctionTooltip.register();name.skyveil.client.craftcost.CraftCostTooltip.register();
         InventoryButtonManager.initialize();CustomKeybindManager.initialize();
         LOGGER.info("Skyveil reusable infrastructure initialized before gameplay");
-        CompactDamageRenderer.register();PetDisplayHud.register();
+        name.skyveil.client.gui.InventoryPreviewHud.register();CompactDamageRenderer.register();PetDisplayHud.register();name.skyveil.client.stats.SkillXpHud.register();name.skyveil.client.mining.CommissionsHud.register();name.skyveil.client.mining.PickaxeAbilityHud.register();name.skyveil.client.stats.PlayerStatsHud.register();name.skyveil.client.performance.PerformanceHud.register();VoidgloomOverlay.register();name.skyveil.client.mining.CorpseWaypoints.register();name.skyveil.client.mining.CrystalHollowsMapHud.register();
         LOGGER.info("Skyveil HUD features registered");
-        ClientLifecycleEvents.CLIENT_STOPPING.register(client->{StoragePreviewManager.shutdown(client);EquipmentShortcutRow.shutdown(client);PetTracker.shutdown(client);AttributeProgressStore.flush();ShardPriceService.flush();SkyveilCacheManager.shutdown();ConfigManager.shutdown();});
-        ClientPlayConnectionEvents.DISCONNECT.register((handler,client)->{SkyblockSession.disconnect();StoragePreviewManager.disconnect(client);EquipmentShortcutRow.disconnect(client);PetTracker.disconnect(client);CompactDamageManager.clear();});
+        ClientLifecycleEvents.CLIENT_STOPPING.register(client->{StoragePreviewManager.shutdown(client);EquipmentShortcutRow.shutdown(client);PetTracker.shutdown(client);AttributeProgressStore.flush();ShardPriceService.flush();name.skyveil.client.auction.AuctionPrices.flushHistory();SkyveilCacheManager.shutdown();ConfigManager.shutdown();});
+        ClientPlayConnectionEvents.DISCONNECT.register((handler,client)->{SkyblockSession.disconnect();name.skyveil.client.mining.CrystalHollowsMapHud.reset();name.skyveil.client.mining.CorpseWaypoints.reset();name.skyveil.client.craftcost.CraftCostTooltip.reset();name.skyveil.client.stats.SkillXpHud.reset();name.skyveil.client.mining.CommissionsHud.reset();name.skyveil.client.mining.PickaxeAbilityHud.reset();name.skyveil.client.stats.PlayerStatsHud.reset();name.skyveil.client.performance.PerformanceHud.reset();StoragePreviewManager.disconnect(client);EquipmentShortcutRow.disconnect(client);PetTracker.disconnect(client);CompactDamageManager.clear();VoidgloomOverlay.clear();});
         KeyMapping.Category category=KeyMapping.Category.register(name.skyveil.Skyveil.INSTANCE.id("keybindings"));
         // In 26.1.2 KeyMapping registers itself; Fabric's former helper is no longer present.
         openMenu=new KeyMapping("key.skyveil.open_menu",InputConstants.Type.KEYSYM,GLFW.GLFW_KEY_RIGHT_SHIFT,category);
         ZoomManager.initialize(category);
         ClientTickEvents.END_CLIENT_TICK.register(client->{
-            SkyblockSession.tick(client);ZoomManager.tick();PetTracker.tick(client);
+            name.skyveil.client.performance.PerformanceHud.tick(client);SkyblockSession.tick(client);name.skyveil.client.mining.CrystalHollowsMapHud.tick(client);name.skyveil.client.mining.CorpseWaypoints.tick(client);name.skyveil.client.mining.CommissionsHud.tick(client);name.skyveil.client.mining.PickaxeAbilityHud.tick(client);name.skyveil.client.stats.PlayerStatsHud.tick(client);ZoomManager.tick();
             if(SkyblockSession.isActive()){
-                CompactDamageManager.tick(client);StoragePreviewManager.tick(client);EquipmentShortcutRow.tick(client);AttributeMenuPanel.tick(client);HuntingBoxValuePanel.tick();ItemProtectionInputHandler.tick(client);CustomKeybindInputHandler.tick(client);WardrobeKeybindHandler.tick(client);BestiaryChatFilter.tick(client);ReleaseNoticeManager.tick(client);GitHubUpdateManager.tick(client);
-            }else CompactDamageManager.clear();
+                PetTracker.tick(client);CompactDamageManager.tick(client);VoidgloomOverlay.tick(client);StoragePreviewManager.tick(client);EquipmentShortcutRow.tick(client);AttributeMenuPanel.tick(client);HuntingBoxValuePanel.tick();ItemProtectionInputHandler.tick(client);CustomKeybindInputHandler.tick(client);WardrobeKeybindHandler.tick(client);BestiaryChatFilter.tick(client);ReleaseNoticeManager.tick(client);GitHubUpdateManager.tick(client);
+            }else{CompactDamageManager.clear();VoidgloomOverlay.clear();name.skyveil.client.itemprotection.ItemProtectionManager.clearPendingLink();name.skyveil.client.itemprotection.ProtectedItemManager.releaseKey();}
             if(menuOpenRequested){menuOpenRequested=false;SkyveilConfigScreen.open();}
             while(openMenu.consumeClick())SkyveilConfigScreen.open();
         });
-        ClientCommandRegistrationCallback.EVENT.register((dispatcher,access)->{
-            dispatcher.register(command("skyveil").executes(ctx->open()).then(command("menu").executes(ctx->open())).then(command("version").executes(ctx->showVersion())).then(command("changelog").executes(ctx->showChangelog())).then(command("update").executes(ctx->update())).then(debugPetCommand()).then(debugHuntingCommand()).then(debugWardrobeCommand()));
-            dispatcher.register(command("sv").executes(ctx->open()).then(command("menu").executes(ctx->open())).then(command("version").executes(ctx->showVersion())).then(command("changelog").executes(ctx->showChangelog())).then(command("update").executes(ctx->update())).then(debugPetCommand()).then(debugHuntingCommand()).then(debugWardrobeCommand()));
-        });
+        ClientCommandRegistrationCallback.EVENT.register((dispatcher,access)->registerCommands(dispatcher));
         LOGGER.info("Skyveil client initialization completed in {} ms",(System.nanoTime()-started)/1_000_000L);
+    }
+    static void registerCommands(com.mojang.brigadier.CommandDispatcher<FabricClientCommandSource> dispatcher){
+            dispatcher.register(command("skyveil").executes(ctx->open()).then(command("menu").executes(ctx->open())).then(command("version").executes(ctx->showVersion())).then(command("changelog").executes(ctx->showChangelog())).then(command("update").executes(ctx->update())).then(debugPetCommand()).then(debugHuntingCommand()).then(debugWardrobeCommand()).then(command("debugprices").executes(ctx->debugPrices())));
+            dispatcher.register(command("sv").executes(ctx->open()).then(command("menu").executes(ctx->open())).then(command("version").executes(ctx->showVersion())).then(command("changelog").executes(ctx->showChangelog())).then(command("update").executes(ctx->update())).then(debugPetCommand()).then(debugHuntingCommand()).then(debugWardrobeCommand()).then(command("debugprices").executes(ctx->debugPrices())));
+        dispatcher.register(command("skyveilprices").executes(ctx->debugPrices()));
     }
     private static com.mojang.brigadier.builder.LiteralArgumentBuilder<FabricClientCommandSource> command(String name) {
         return com.mojang.brigadier.builder.LiteralArgumentBuilder.literal(name);
@@ -88,6 +91,19 @@ public final class SkyveilClientEntrypoint implements ClientModInitializer {
     private static int showVersion(){var client=net.minecraft.client.Minecraft.getInstance();String version=net.fabricmc.loader.api.FabricLoader.getInstance().getModContainer("skyveil").map(container->container.getMetadata().getVersion().getFriendlyString()).orElse("unknown");if(client.player!=null)client.player.sendSystemMessage(Component.literal("[Skyveil] Version "+version));return 1;}
     private static int showChangelog(){return ReleaseNoticeManager.showNow(net.minecraft.client.Minecraft.getInstance())?1:0;}
     private static int update(){return GitHubUpdateManager.requestUpdate(net.minecraft.client.Minecraft.getInstance());}
+    private static int debugPrices(){
+        var client=net.minecraft.client.Minecraft.getInstance();if(client.player==null)return 0;
+        showVersion();
+        var stack=client.player.getMainHandItem();
+        var tooltip=net.minecraft.client.gui.screens.Screen.getTooltipFromItem(client,stack);
+        var lines=java.util.List.of(
+            "SkyBlock="+SkyblockSession.isActive()+", Auction House Item Prices="+ConfigManager.get().auctionTooltip,
+            name.skyveil.client.auction.AuctionPrices.diagnostic(),
+            name.skyveil.client.auction.AuctionTooltip.diagnostic(stack,tooltip),
+            name.skyveil.client.craftcost.CraftCostTooltip.diagnostic(stack));
+        for(String line:lines){LOGGER.info("Price diagnostic: {}",line);client.player.sendSystemMessage(Component.literal("[Skyveil] "+line));}
+        return 1;
+    }
     private static int debugPet(){var client=net.minecraft.client.Minecraft.getInstance();String text=PetTracker.debugSummary();LOGGER.info("Pet sync diagnostic: {}",text);if(client.player!=null)client.player.sendSystemMessage(Component.literal("[Skyveil] "+text));return 1;}
     private static int debugPetCache(){var client=net.minecraft.client.Minecraft.getInstance();var lines=PetTracker.debugCacheLines();if(client.player!=null){client.player.sendSystemMessage(Component.literal("[Skyveil] Cached pets: "+lines.size()));for(String line:lines)client.player.sendSystemMessage(Component.literal(" - "+line));}return 1;}
     private static int togglePetTrace(){var client=net.minecraft.client.Minecraft.getInstance();boolean enabled=PetTracker.toggleDebugTracing();LOGGER.info("Pet debug tracing {}",enabled?"enabled":"disabled");if(client.player!=null)client.player.sendSystemMessage(Component.literal("[Skyveil] Pet debug tracing "+(enabled?"enabled":"disabled")));return 1;}

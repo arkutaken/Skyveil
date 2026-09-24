@@ -4,28 +4,17 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.HexFormat;
 import java.util.Locale;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
+
 
 /** Stable identity for one owned pet, independent of its changing level and XP. */
 public record PetInstanceId(String value,Source source,Confidence confidence) {
-    private static final Pattern STRING_UUID=Pattern.compile("(?i)(?:\\\\?[\"'])?(?:uuid|unique_?id)(?:\\\\?[\"'])?\\s*:\\s*(?:\\\\?[\"'])?([0-9a-f-]{16,36})");
-    private static final Pattern INT_ARRAY_UUID=Pattern.compile("(?i)(?:\\\\?[\"'])?(?:uuid|unique_?id)(?:\\\\?[\"'])?\\s*:\\s*\\[I;([^]]+)]");
-
     public static PetInstanceId fromMetadata(String metadata,String type,String tier,String heldItem) {
-        String raw=metadata==null?"":metadata;
-        Matcher uuid=STRING_UUID.matcher(raw);
-        if(uuid.find())return new PetInstanceId(uuid.group(1).toLowerCase(Locale.ROOT),Source.UUID,Confidence.EXACT);
-        Matcher intUuid=INT_ARRAY_UUID.matcher(raw);
-        if(intUuid.find())return new PetInstanceId(hash(intUuid.group(1).replaceAll("\\s+","")),Source.UUID,Confidence.EXACT);
-        if(!raw.isBlank()) {
-            String stable=raw
-                .replaceAll("(?i)(?:\\\\?[\"'])?exp(?:\\\\?[\"'])?\\s*:\\s*-?[0-9]+(?:\\.[0-9]+)?(?:e[+-]?[0-9]+)?","\"exp\":0")
-                .replaceAll("(?i)(?:\\\\?[\"'])?active(?:\\\\?[\"'])?\\s*:\\s*(?:true|false)","\"active\":false")
-                .replaceAll("\\s+","");
-            return new PetInstanceId(hash(stable),Source.COMPONENT_FINGERPRINT,Confidence.PARTIAL);
-        }
-        String fallback=(type+"|"+tier+"|"+heldItem).toLowerCase(Locale.ROOT);
+        String uuid=PetMetadata.parse(metadata).uuid();
+        if(!uuid.isBlank())return new PetInstanceId(uuid.toLowerCase(Locale.ROOT),Source.UUID,Confidence.EXACT);
+        // Mutable petInfo (XP, active state, held items, skins) is not an identity.
+        // UUID-less copies are distinguished by the menu reconciler.
+        String fallback=(type+"|"+tier).toLowerCase(Locale.ROOT);
         return new PetInstanceId(hash(fallback),Source.FALLBACK,Confidence.UNKNOWN);
     }
 

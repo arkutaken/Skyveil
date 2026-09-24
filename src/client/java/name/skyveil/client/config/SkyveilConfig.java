@@ -6,8 +6,14 @@ import java.util.Map;
 
 /** Persistent client-only settings. Public fields keep the JSON easy to inspect and migrate. */
 public final class SkyveilConfig {
-    public int version = 30;
+    public int version = 31;
+    public boolean auctionTooltip=true;
+    public boolean fullCraftCost=true;
+    public boolean bazaarTooltip=true;
+    public boolean blackConfigTheme = false;
     public String darkMode = "DEFAULT";
+    public boolean showSwitchedItemName = true;
+    public boolean hudAlignmentSnap = true;
     public boolean scrollableTooltips = false;
     public boolean compactDamage = false;
     public String compactDamageStyle = "MINIMAL";
@@ -29,7 +35,24 @@ public final class SkyveilConfig {
     public CustomKeybinds customKeybinds = new CustomKeybinds();
     public ChatCopy chatCopy = new ChatCopy();
     public Wardrobe wardrobe = new Wardrobe();
+    public InventoryPreview inventoryPreview = new InventoryPreview();
+    public SkillXp skillXp = new SkillXp();
+    public Commissions commissions = new Commissions();
+    public CrystalHollowsMap crystalHollowsMap=new CrystalHollowsMap();
+    public static final class CrystalHollowsMap {
+        public boolean enabled=true;
+        public int hudX=240,hudY=8;
+        public double scale=1;
+    }
+    public PickaxeAbility pickaxeAbility = new PickaxeAbility();
+    public CorpseWaypoints corpseWaypoints = new CorpseWaypoints();
+    public static final class CorpseWaypoints {
+        public boolean enabled=true, lapis=true, tungsten=true, umber=true;
+    }
+    public PlayerStats playerStats = new PlayerStats();
+    public Performance performance = new Performance();
     public PetDisplay petDisplay = new PetDisplay();
+    public Voidgloom voidgloom = new Voidgloom();
     public java.util.Set<Integer> lockedInventorySlots = new java.util.HashSet<>();
     public static final class Zoom {
         public boolean enabled=true;
@@ -46,6 +69,9 @@ public final class SkyveilConfig {
         public boolean attributeSortDescending=true;
     }
     public static final class ItemProtection {
+        public boolean protectItems=true;
+        public int protectItemKey=org.lwjgl.glfw.GLFW.GLFW_KEY_P;
+        public java.util.Set<String> protectedItems=new java.util.HashSet<>();
         public boolean enabled=true;
         public int lockKey=org.lwjgl.glfw.GLFW.GLFW_KEY_L;
         public boolean showLockIcon=true;
@@ -55,6 +81,7 @@ public final class SkyveilConfig {
     }
     public static final class ItemRarity {
         public boolean enabled=true;
+        public boolean showDungeonFloorAndQuality=true;
     }
     public static final class InventoryButtons {
         public boolean enabled=true;
@@ -75,6 +102,42 @@ public final class SkyveilConfig {
     public static final class Wardrobe {
         public boolean numberKeys=true;
     }
+    public static final class StatPosition {
+        public int hudX=-1,hudY=-1;
+        public double scale=1;
+    }
+    public static final class PlayerStats {
+        public boolean enabled=true;
+        public java.util.Map<name.skyveil.client.stats.PlayerStat,StatPosition> positions=new java.util.EnumMap<>(name.skyveil.client.stats.PlayerStat.class);
+        public PlayerStats(){for(var stat:name.skyveil.client.stats.PlayerStat.values())positions.put(stat,new StatPosition());}
+    }
+    public static final class InventoryPreview {
+        public double backgroundOpacity=.4;
+        public String backgroundColor="PURPLE";
+        public boolean enabled=true;
+        public int hudX=-1,hudY=-1;
+        public double scale=1;
+    }
+    public static final class PickaxeAbility {
+        public boolean enabled=true;
+        public int hudX=8,hudY=65;
+        public double scale=1;
+    }
+    public static final class Commissions {
+        public boolean enabled=true;
+        public int hudX=8,hudY=100;
+        public double scale=1;
+    }
+    public static final class SkillXp {
+        public boolean enabled=true;
+        public int hudX=-1,hudY=-1;
+        public double scale=1;
+    }
+    public static final class Performance {
+        public boolean enabled=true;
+        public int hudX=8,hudY=8;
+        public double scale=1.0;
+    }
     public static final class PetDisplay {
         public boolean enabled=true;
         public String style="PANEL";
@@ -84,5 +147,13 @@ public final class SkyveilConfig {
         public boolean showProgressBar=true;
         public boolean showPetItem=true;
         public boolean hideAutoPetRuleMessage=false;
+    }
+    public static final class Voidgloom {
+        public boolean highlightLasers=true;
+        public int laserColor=0xFF55FFFF;
+        public boolean highlightBeacon=true;
+        public int beaconColor=0xFFFF5555;
+        public boolean highlightHeads=true;
+        public int headColor=0xFFFFAA00;
     }
 }

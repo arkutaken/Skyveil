@@ -29,11 +29,12 @@ public final class ItemSearchOverlay {
     }
     private static void filter(String value){String query=value==null?"":value.trim();lastQuery=query;results=query.isBlank()||ItemSearchCatalog.isLoreSearch(query)?List.of():ItemSearchCatalog.search(query);LORE_MATCHES.clear();scrollRow=0;rememberAuctionQuery(query);}
     public static void render(AbstractContainerScreen<?> owner,GuiGraphicsExtractor graphics,int mouseX,int mouseY){
-        if(owner!=screen||field==null){bounds=null;return;}String query=field.getValue().trim();if(!query.equals(lastQuery))filter(query);
+        if(owner!=screen||field==null){bounds=null;return;}name.skyveil.client.gui.HudVisibility.cover(graphics,field.getX()-1,field.getY()-1,field.getWidth()+2,field.getHeight()+2);String query=field.getValue().trim();if(!query.equals(lastQuery))filter(query);
         if(query.isBlank()||ItemSearchCatalog.isLoreSearch(query)){bounds=null;return;}
         int panelWidth=Math.min(640,Math.max(260,graphics.guiWidth()/3)),x=graphics.guiWidth()-panelWidth-8,y=8,height=graphics.guiHeight()-16;
         int columns=Math.max(1,(panelWidth-12)/CELL_WIDTH),rows=Math.max(1,(height-38)/CELL_HEIGHT),totalRows=(Math.min(results.size(),MAX_RESULTS)+columns-1)/columns,maxScroll=Math.max(0,totalRows-rows);scrollRow=Math.max(0,Math.min(scrollRow,maxScroll));
         int visibleRows=Math.max(1,Math.min(rows,Math.max(1,totalRows))),contentHeight=25+visibleRows*CELL_HEIGHT+(maxScroll>0?12:0);bounds=new Bounds(x,y,panelWidth,contentHeight,columns,rows,maxScroll);
+        name.skyveil.client.gui.HudVisibility.cover(graphics,x,y,panelWidth,contentHeight);
         String count=results.size()>MAX_RESULTS?MAX_RESULTS+"+ of "+results.size():results.size()+"";graphics.text(Minecraft.getInstance().font,"Item Search • "+count+" results",x+7,y+7,SkyveilTheme.TEXT,true);
         if(results.isEmpty())graphics.text(Minecraft.getInstance().font,"No matching SkyBlock items",x+8,y+28,SkyveilTheme.SECONDARY,false);
         int first=scrollRow*columns,limit=Math.min(Math.min(results.size(),MAX_RESULTS),first+rows*columns);

@@ -88,7 +88,7 @@ public abstract class AbstractContainerScreenMixin {
     }
 
     @Inject(method="removed",at=@At("HEAD"))
-    private void skyveil$resetTooltipScroll(CallbackInfo ci){AbstractContainerScreen<?> screen=(AbstractContainerScreen<?>)(Object)this;StoragePreviewManager.captureBeforeClose(screen);EquipmentShortcutRow.screenClosed(screen);ScrollableTooltipState.reset();AttributeMenuPanel.screenClosed(screen);HuntingBoxValuePanel.reset();ItemSearchOverlay.reset();ItemProtectionManager.clearPendingLink();}
+    private void skyveil$resetTooltipScroll(CallbackInfo ci){AbstractContainerScreen<?> screen=(AbstractContainerScreen<?>)(Object)this;StoragePreviewManager.captureBeforeClose(screen);EquipmentShortcutRow.screenClosed(screen);ScrollableTooltipState.reset();AttributeMenuPanel.screenClosed(screen);HuntingBoxValuePanel.reset();ItemSearchOverlay.reset();ItemProtectionManager.clearPendingLink();name.skyveil.client.itemprotection.ProtectedItemManager.releaseKey();}
 
     @Inject(method="keyPressed",at=@At("HEAD"),cancellable=true)
     private void skyveil$itemSearchKey(KeyEvent event,CallbackInfoReturnable<Boolean> cir){if(SkyblockSession.isActive()&&ItemSearchOverlay.keyPressed((AbstractContainerScreen<?>)(Object)this,event))cir.setReturnValue(true);}
@@ -96,6 +96,10 @@ public abstract class AbstractContainerScreenMixin {
     @Inject(method="keyPressed",at=@At("HEAD"),cancellable=true)
     private void skyveil$toggleLock(KeyEvent event,CallbackInfoReturnable<Boolean> cir){
         if(!SkyblockSession.isActive())return;
+        if(ConfigManager.get().itemProtection.protectItems&&event.key()==ConfigManager.get().itemProtection.protectItemKey){
+            if(hoveredSlot!=null)name.skyveil.client.itemprotection.ProtectedItemManager.press(hoveredSlot.getItem());
+            cir.setReturnValue(true);return;
+        }
         if(!ConfigManager.get().itemProtection.enabled||event.key()!=ConfigManager.get().itemProtection.lockKey)return;
         ItemProtectionManager.beginLockKeyPress(hoveredSlot);
         cir.setReturnValue(true);
@@ -105,6 +109,13 @@ public abstract class AbstractContainerScreenMixin {
     private void skyveil$wardrobeNumberKey(KeyEvent event,CallbackInfoReturnable<Boolean> cir){
         if(!SkyblockSession.isActive())return;
         if(WardrobeKeybindHandler.handle((AbstractContainerScreen<?>)(Object)this,event))cir.setReturnValue(true);
+    }
+
+    @Inject(method="onClose",at=@At("HEAD"),cancellable=true)
+    private void skyveil$protectCarriedOnClose(CallbackInfo ci){
+        if(SkyblockSession.isActive()&&name.skyveil.client.itemprotection.ProtectedItemManager.protectedItem(menu.getCarried())){
+            name.skyveil.client.itemprotection.ProtectedItemManager.blocked();ci.cancel();
+        }
     }
 
     @Inject(method="slotClicked",at=@At("HEAD"),cancellable=true)

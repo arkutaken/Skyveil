@@ -15,6 +15,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class KeyboardHandlerMixin {
     @Inject(method="keyPress",at=@At("HEAD"))
     private void skyveil$releaseItemProtectionKey(long window,int action,KeyEvent event,CallbackInfo ci){
-        if(action==GLFW.GLFW_RELEASE&&event.key()==ConfigManager.get().itemProtection.lockKey)ItemProtectionManager.endLockKeyPress();
+        if(action==GLFW.GLFW_RELEASE&&event.key()==ConfigManager.get().itemProtection.protectItemKey)name.skyveil.client.itemprotection.ProtectedItemManager.releaseKey();
+        if(action==GLFW.GLFW_RELEASE&&event.key()==ConfigManager.get().itemProtection.lockKey){
+            if(name.skyveil.client.SkyblockSession.isActive())ItemProtectionManager.endLockKeyPress();else ItemProtectionManager.clearPendingLink();
+        }
     }
 }

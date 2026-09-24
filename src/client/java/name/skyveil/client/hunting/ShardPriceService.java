@@ -31,7 +31,7 @@ public final class ShardPriceService {
     private static final Logger LOGGER=LoggerFactory.getLogger("skyveil-shard-prices");
     private static final Gson GSON=new GsonBuilder().setPrettyPrinting().create();
     private static final URI ENDPOINT=URI.create("https://api.hypixel.net/v2/skyblock/bazaar");
-    private static final long SUCCESS_REFRESH_MS=5*60_000L,FAILURE_RETRY_MS=60_000L;
+    private static final long SUCCESS_REFRESH_MS=60_000L,FAILURE_RETRY_MS=60_000L;
     private static final HttpClient HTTP=HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).followRedirects(HttpClient.Redirect.NORMAL).build();
     private static final AtomicBoolean INITIALIZED=new AtomicBoolean(),REFRESHING=new AtomicBoolean();
     private static volatile Snapshot snapshot=new Snapshot(Map.of(),0,0,false);
@@ -85,8 +85,10 @@ public final class ShardPriceService {
         Thread.startVirtualThread(()->{try{
             HttpRequest request=HttpRequest.newBuilder(ENDPOINT).timeout(Duration.ofSeconds(20)).header("Accept","application/json").header("User-Agent","Skyveil/1.10.1 shard-price-service").GET().build();
             HttpResponse<String> response=HTTP.send(request,HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));if(response.statusCode()!=200)throw new IllegalStateException("HTTP "+response.statusCode());
-            JsonObject root=JsonParser.parseString(response.body()).getAsJsonObject();Map<String,Quote> prices=parseProducts(root);if(prices.isEmpty())throw new IllegalStateException("response contained no shard prices");
-            long fetchedAt=System.currentTimeMillis(),apiUpdated=longValue(root,"lastUpdated");snapshot=new Snapshot(prices,fetchedAt,apiUpdated,true);updateCache(snapshot);
+            JsonObject root=JsonParser.parseString(response.body()).getAsJsonObject();name.skyveil.client.bazaar.BazaarPrices.update(root);Map<String,Quote> prices=parseProducts(root);if(prices.isEmpty())throw new IllegalStateException("response contained no shard prices");
+            long fetchedAt=System.currentTimeMillis(),apiUpdated=longValue(root,"lastUpdated");
+            if(snapshot.fromNetwork()&&apiUpdated>0&&apiUpdated<=snapshot.apiLastUpdated())return;
+            snapshot=new Snapshot(prices,fetchedAt,apiUpdated,true);updateCache(snapshot);
             LOGGER.info("Loaded {} shard prices from the Hypixel Bazaar snapshot",prices.size());
         }catch(Exception exception){LOGGER.warn("Could not refresh Hypixel Bazaar shard prices; retaining the last known snapshot",exception);}
         finally{REFRESHING.set(false);}});

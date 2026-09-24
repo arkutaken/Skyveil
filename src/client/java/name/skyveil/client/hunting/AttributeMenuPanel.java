@@ -51,9 +51,9 @@ public final class AttributeMenuPanel {
         int viewportTop=y+HEADER,viewportBottom=y+height-FOOTER,visible=Math.max(1,(viewportBottom-viewportTop)/ROW_HEIGHT),maxScroll=Math.max(0,rows.size()-visible);
         scroll=Math.max(0,Math.min(scroll,maxScroll));bounds=new Bounds(x,y,width,height,viewportTop,viewportBottom,visible,maxScroll);
 
-        int background=switch(ConfigManager.get().darkMode){case "DARK_PURPLE"->0xEE170D24;case "DARK"->0xEE15171C;default->0xE8211A2B;};
-        graphics.fill(x,y,x+width,y+height,background);graphics.outline(x,y,width,height,SkyveilTheme.ACCENT);
-        graphics.text(Minecraft.getInstance().font,"Attribute Progress",x+6,y+6,SkyveilTheme.TEXT,true);
+        int background=SkyveilTheme.HUD_BACKGROUND;
+        graphics.fill(x,y,x+width,y+height,background);
+        graphics.text(Minecraft.getInstance().font,"Attribute Progress",x+6,y+6,SkyveilTheme.ACCENT,true);
         String suffix=complete?"":"+";
         graphics.text(Minecraft.getInstance().font,"Attributes: "+known+suffix+"/"+AttributeSessionData.TOTAL_CONSUMABLE_ATTRIBUTES,x+6,y+17,0xFF55FF55,false);
         graphics.text(Minecraft.getInstance().font,"Maxed: "+maxed+suffix+"/"+AttributeSessionData.TOTAL_CONSUMABLE_ATTRIBUTES,x+6,y+28,0xFFFFD45C,false);
@@ -119,12 +119,12 @@ public final class AttributeMenuPanel {
     }
     private static void rebuildRows(){var globalProgress=AttributeSessionData.progress();Map<String,AttributeMenuParser.Parsed> progress=globalProgress;
         if(!filterKey.isBlank()){HashMap<String,AttributeMenuParser.Parsed> filtered=new HashMap<>();for(var pageRows:FILTER_PAGES.values())AttributeSessionData.mergeObservations(filtered,pageRows);progress=filtered;}
-        known=0;maxed=0;int unowned=0,unknownOwnership=0,unknownQuantity=0;ArrayList<Row> next=new ArrayList<>();
+        known=0;maxed=0;ArrayList<Row> next=new ArrayList<>();
         for(var parsed:globalProgress.values()){if(parsed.ownership()==AttributeMenuParser.Ownership.OWNED||parsed.ownership()==AttributeMenuParser.Ownership.MAXED)known++;if(parsed.ownership()==AttributeMenuParser.Ownership.MAXED)maxed++;}
         for(var parsed:progress.values()){
-            if(parsed.ownership()==AttributeMenuParser.Ownership.UNKNOWN){unknownOwnership++;continue;}
-            if(!AttributeMenuParser.isMissing(parsed.ownership()))continue;unowned++;
-            boolean quantityKnown=parsed.progress().known()&&parsed.progress().purchaseRemaining()>0;long needed=quantityKnown?parsed.progress().purchaseRemaining():0;if(!quantityKnown)unknownQuantity++;
+            if(parsed.ownership()==AttributeMenuParser.Ownership.UNKNOWN)continue;
+            if(!AttributeMenuParser.isMissing(parsed.ownership()))continue;
+            boolean quantityKnown=parsed.progress().known()&&parsed.progress().purchaseRemaining()>0;long needed=quantityKnown?parsed.progress().purchaseRemaining():0;
             String subtype=parsed.key().startsWith("ATTRIBUTE:")?parsed.key().substring(10):"";var identity=HuntingShardPriceIdentity.resolveAttribute(subtype);ItemStack head=AttributeShardHeadCatalog.head(subtype);if(head.isEmpty())head=parsed.stack();String source=parsed.sourceName().isBlank()?(identity==null?parsed.name().getString():identity.displayName()+" Shard"):parsed.sourceName();source=AttributeMenuParser.sanitizeSourceName(source);var sourceName=net.minecraft.network.chat.Component.literal(source);next.add(new Row(head,sourceName,parsed.rarity(),subtype,needed,quantityKnown,marketUnitPrice(subtype)));
         }
         complete=AttributeSessionData.complete();cachedRevision=AttributeSessionData.revision();cachedPriceRevision=ShardPriceService.revision();rows=List.copyOf(next);sortRows();scroll=0;

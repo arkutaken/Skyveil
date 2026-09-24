@@ -14,7 +14,7 @@ enum PetDisplayStyle {
     Palette palette(int rarityRgb,int alpha) {
         int rarity=rarityRgb&0xFFFFFF;
         return switch(this) {
-            case PANEL -> new Palette(true,(alpha<<24)|0x201730,(alpha<<24)|0x9B6CFF,0xFF9B6CFF,false);
+            case PANEL -> new Palette(true,(alpha<<24)|(name.skyveil.client.gui.SkyveilTheme.HUD_BACKGROUND&0xFFFFFF),0,name.skyveil.client.gui.SkyveilTheme.SUCCESS,false);
             case MINIMAL -> new Palette(false,0,0,0xFF000000|rarity,false);
         };
     }

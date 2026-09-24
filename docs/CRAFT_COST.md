@@ -1,0 +1,33 @@
+# Full Craft Cost and Auction Prices
+
+Enabled under Interface > Items and restricted to SkyBlock. Full craft cost estimates the coins needed to reproduce an item; it is separate from its auction comparison price.
+
+Auction tooltips show Lowest BIN and 3-day average. The active average is retained internally for history and calculations, but has no tooltip row. It uses the five cheapest available listings with the same SkyBlock identity, or all available listings if fewer than five exist. Stack listings are normalized to unit prices. Expired, claimed, purchased BINs, non-BIN auctions, and duplicate auction UUIDs are excluded. Pet species/rarity, rune type/level, and book enchantments are separate identities. Lowest BIN remains a base-item comparison. Three-day estimates now require the same upgrade configuration: enchantment levels, reforge, stars, recombobulation, potatoes, scrolls, gemstones and unlocked slots, drill parts, dyes, skins, and other supported applied upgrades. Pets also require matching species, rarity, experience, held item, skin, and candy use. Fuel, item UUIDs, progress counters, and Museum binding are ignored. Matching is deliberately strict; cheaper configurations are never substituted.
+
+The 3-day average is the arithmetic mean of the latest observed average of up to five cheapest matching active BIN listings in each observed hour within the last 72 hours. At least one matching configuration must still exist in the current fresh snapshot; otherwise the tooltip says "No similar items found, cannot calculate". Historical matches alone cannot provide an estimate. The old base-item history is discarded when upgrading to configuration-based history, so collection restarts. It measures asking prices, not completed sales. Missing hours are not invented. A new installation starts collecting history; the tooltip marks its shorter observed window as collecting history until observations span at least 71 hours. History only collects while the client fetches auction updates.
+
+The client checks the first auction page for a newer API generation before downloading remaining pages. Only a complete, consistent generation replaces the current snapshot; old current-price maps are discarded, and failed downloads retain the previous snapshot for up to 15 minutes. Unchanged API generations do not replace caches or add history. No full listing history or per-minute cache files are stored. Compact hourly observations are compressed within the existing shared Skyveil cache, replacing the observation within the same hour and pruning observations older than 72 hours. The shared cache performs its existing atomic disk replacement on client shutdown. Bazaar/shard caches also ignore unchanged API generations.
+
+Crafting/forge recipes use current ingredient purchase prices and account for recipe output amounts. Missing ingredient markets fall back to recipes. If no complete recipe can be priced, an available unmodified output listing can supply its replacement cost. Noncraftable bases also require unmodified listings, avoiding double-counted upgrades. Auction ingredients use the average of up to five cheapest unmodified listings; Bazaar ingredients use Insta Buy. Recipe aliases for cocoa/lapis and auction-only enchantment books are normalized before lookup.
+
+Full craft cost is hidden for noncraftable, unmodified items used as recipe ingredients (such as Necron Handle and Judgement Core). Crafted/forged items, prestige outputs, and obtained items with applied upgrades retain the line. This affects tooltip visibility only: raw materials still contribute to recipes that consume them.
+
+Only the last hovered item's calculation is retained for one second, with immediate invalidation after market updates; disconnect clears it. If a required cost remains unknown, the tooltip lists the missing inputs instead of presenting a partial sum as a full cost.
+
+Applied costs include enchantments (including combining lower books), reforge stones and application fees, hot/fuming potato books, recombobulators, gemstones and unlocked slots, essence/master stars, Necron blade and power scrolls, Art of War/Peace, stats books, Silex, transmission tuners, Etherwarp, farming books, wood singularities, mana disintegrators, jalapeno/polarvoid books, runes, dyes, and drill parts where their identity and market are known.
+
+Enchanting-table levels add zero coins; XP and time are not converted into coins. Self-leveling enchantments charge their book once. Basic random reforge history, legacy attributes, and unavailable material prices cannot be inferred reliably. Skin/part IDs without a matching product also result in Unavailable.
+
+Definitions were generated on 2026-09-10 from:
+
+- [NEU item recipes, reforge stones, and enchanting-table levels](https://github.com/NotEnoughUpdates/NotEnoughUpdates-REPO).
+- [Hypixel item resources](https://api.hypixel.net/v2/resources/skyblock/items), including star and gemstone-slot costs.
+
+NEU's MIT license is bundled beside the catalog as NEU-LICENSE.txt. Recipe definitions are release resources. To regenerate, download the NEU master archive and the Hypixel items / NEU reforgestones JSON into a temporary directory, then run tools/generate_craft_cost_catalog.ps1 with -Archive, -Items, and -Reforges. Remove the temporary downloads afterward.
+
+Prestige costs follow reverse item-resource prestige links and include required stars on each consumed tier. Kuudra Teeth and Heavy Pearls are shown as required material quantities alongside the coin subtotal. Innate level-one Kuudra attributes are part of the dropped base item.
+
+ArmorCraftCostTest exercises 658 catalog armor IDs plus 100 Kuudra armor/tier combinations with upgrades. These use controlled prices. Opt-in AuctionLiveTest checks current auction coverage and several craft costs. Regression tests cover five-listing averages, sparse markets, purchased/duplicate listings, unchanged generations, replacement of old prices, recipe fallbacks, market identities, history persistence, and 72-hour pruning.
+
+Soulbound policy: price tooltips are suppressed only for item identities marked COOP or SOLO soulbound in Hypixel's item definitions (383 identities refreshed on 2026-09-22). Instance lore, Museum donations, and soulbound instance flags do not suppress replacement-cost or market-comparison estimates for normally tradable items. These comparisons do not imply that a donated instance can be sold. Inherently bound items such as Royal Pigeon have no full-craft-cost row, including removal of cached Unavailable rows. The catalog generator preserves this metadata from its Hypixel item input.
+

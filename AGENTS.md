@@ -16,3 +16,9 @@
 - Keep semantic versions in Gradle/Fabric metadata and JAR filenames; never encode release versions in source-directory names.
 - Before refactoring, trace Gradle source sets, entrypoints, mixins, and resources. Merge required behavior into the canonical files before removing obsolete code.
 - Preserve the existing `release` task and its single-JAR verification instead of adding another packaging path.
+
+## Release version policy
+
+- For every completed batch of mod changes delivered to the user, bump the semantic version before building the release. Never deliver changed mod behavior under a previously delivered version.
+- Use the existing Gradle bump tasks (normally bumpPatch; bumpMinor or bumpMajor when appropriate), then build with release. Do not bump again for retries of the same release.
+- Update CHANGELOG.md and the bundled release_notes.txt for that version; keep Gradle version, Fabric metadata, release notes, and the release JAR filename consistent.

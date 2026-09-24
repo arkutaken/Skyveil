@@ -1,3 +1,5 @@
-Compact Damage now hides excluded secondary damage indicators instead of leaving them over the mob.
-Disabled sources are ignored by the five-melee-hit average.
-Enabled sources are merged into their melee sample without consuming another hit slot.
+## 1.24.22
+
+- Improve toggle readability with shadow-free white labels on a darker enabled background.
+- Remove panel backgrounds behind health, mana, and vitality.
+- Automatically fit defense and speed backgrounds and HUD Layout bounds to the displayed number.

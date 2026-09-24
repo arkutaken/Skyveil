@@ -40,6 +40,14 @@ public final class SearchManager {
         return List.copyOf(matches);
     }
 
+    /** Exact setting-key lookup for HUD shortcuts, independent of display names and search ranking. */
+    public static Result findSetting(String key){
+        ensureIndex();
+        for(var feature:index)if(feature.setting.key.equals(key))
+            return new Result(feature.category,feature.subcategory,feature.setting,0);
+        return null;
+    }
+
     public static String normalize(String value){
         return value==null?"":value.toLowerCase(Locale.ROOT).trim().replaceAll("\\s+"," ");
     }

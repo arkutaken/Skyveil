@@ -16,6 +16,12 @@ class PetLevelParserTest {
         assertNull(PetLevelParser.parse("[Lvl 100]"));
     }
 
+    @Test void parsesCompactActivePetWidgetLayouts() {
+        assertEquals(new PetLevelParser.Parsed(86,"Lion"),PetLevelParser.parseWidget("Lvl 86 Lion"));
+        assertEquals(new PetLevelParser.Parsed(100,"Golden Dragon"),PetLevelParser.parseWidget("Golden Dragon (Lvl 100)"));
+        assertEquals(new PetLevelParser.Parsed(200,"Golden Dragon"),PetLevelParser.parseWidget("[Lvl 200] Golden Dragon"));
+    }
+
     @Test void recognizesAuctionHouseTitles() {
         assertTrue(PetMenuLevelOverlayRenderer.isAuctionTitle("Auctions Browser"));
         assertTrue(PetMenuLevelOverlayRenderer.isAuctionTitle("BIN Auction View"));

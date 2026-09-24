@@ -25,6 +25,19 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 /** Observes authoritative server updates only after vanilla has applied them to client state. */
 @Mixin(ClientPacketListener.class)
 public abstract class ClientPacketListenerMixin {
+    @Inject(method="handlePongResponse",at=@At("HEAD"),cancellable=true)
+    private void skyveil$performancePong(net.minecraft.network.protocol.ping.ClientboundPongResponsePacket packet,CallbackInfo ci){
+        if(name.skyveil.client.performance.PerformanceHud.onPong(packet.time()))ci.cancel();
+    }
+    @Inject(method="handleSetTime",at=@At("TAIL"))
+    private void skyveil$performanceTime(net.minecraft.network.protocol.game.ClientboundSetTimePacket packet,CallbackInfo ci){
+        name.skyveil.client.performance.PerformanceHud.onTimeUpdate(packet.gameTime());
+    }
+
+    @Inject(method="handleRespawn",at=@At("TAIL"))
+    private void skyveil$performanceRespawn(net.minecraft.network.protocol.game.ClientboundRespawnPacket packet,CallbackInfo ci){
+        name.skyveil.client.performance.PerformanceHud.reset();
+    }
     @Inject(
         method="handleSystemChat",
         at=@At(

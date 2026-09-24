@@ -2,7 +2,6 @@ package name.skyveil.client.hunting;
 
 import name.skyveil.client.config.ConfigManager;
 import name.skyveil.client.gui.SkyveilTheme;
-import name.skyveil.client.itemrarity.SkyblockRarity;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -42,9 +41,9 @@ public final class HuntingBoxValuePanel {
         if(screen!=cachedScreen)beginScreen(screen);if(dirty)stabilize(screen);
         List<Row> rows=cachedRows;int viewportTop=y+HEADER,viewportBottom=y+height-FOOTER,visible=Math.max(1,(viewportBottom-viewportTop)/ROW_HEIGHT),maxScroll=Math.max(0,rows.size()-visible);
         scroll=Math.max(0,Math.min(scroll,maxScroll));bounds=new Bounds(x,y,width,height,viewportTop,viewportBottom,maxScroll);
-        int background=switch(ConfigManager.get().darkMode){case "DARK_PURPLE"->0xEE170D24;case "DARK"->0xEE15171C;default->0xE8211A2B;};
-        graphics.fill(x,y,x+width,y+height,background);graphics.outline(x,y,width,height,SkyveilTheme.ACCENT);
-        graphics.text(Minecraft.getInstance().font,"Hunting Box Value",x+6,y+6,SkyveilTheme.TEXT,true);
+        int background=SkyveilTheme.HUD_BACKGROUND;
+        graphics.fill(x,y,x+width,y+height,background);
+        graphics.text(Minecraft.getInstance().font,"Hunting Box Value",x+6,y+6,SkyveilTheme.ACCENT,true);
         long total=0;int priced=0,unpriced=0;for(Row row:rows)if(row.unitPrice()==null)unpriced++;else{priced++;total=safeAdd(total,safeMultiply(row.unitPrice(),row.amount()));}ShardPriceService.Status priceStatus=ShardPriceService.status();
         String incomplete=VISITED.size()<totalPages?"+":"";
         graphics.text(Minecraft.getInstance().font,"Sell value: "+ShardPriceService.format(total)+incomplete,x+6,y+18,0xFFFFD45C,false);

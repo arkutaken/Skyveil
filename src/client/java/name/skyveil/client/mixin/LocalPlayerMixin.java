@@ -14,6 +14,7 @@ public abstract class LocalPlayerMixin {
     private void skyveil$preventLockedDrop(boolean fullStack,CallbackInfoReturnable<Boolean> cir){
         if(!SkyblockSession.isActive())return;
         LocalPlayer player=(LocalPlayer)(Object)this;
+        if(name.skyveil.client.itemprotection.ProtectedItemManager.protectedItem(player.getMainHandItem())){name.skyveil.client.itemprotection.ProtectedItemManager.blocked();cir.setReturnValue(false);return;}
         if(ItemProtectionManager.isProtected(player.getInventory().getSelectedSlot())){ItemProtectionManager.blocked();cir.setReturnValue(false);}
     }
 }

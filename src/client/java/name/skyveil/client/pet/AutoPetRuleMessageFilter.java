@@ -19,7 +19,10 @@ public final class AutoPetRuleMessageFilter {
     static boolean shouldSuppressText(String text,boolean overlay,boolean enabled){return enabled&&!overlay&&matchesText(text);}
     static boolean matchesText(String text){
         if(text==null)return false;
-        String normalized=text.replaceAll("(?:\\u00c2)?\\u00a7.","").replace('\u00a0',' ').replaceAll("[\\u200B-\\u200D\\uFEFF]","").trim().replaceAll("\\s+"," ");
-        return MESSAGE.matcher(normalized).find();
+        return MESSAGE.matcher(normalizeText(text)).find();
+    }
+
+    static String normalizeText(String text){
+        return (text==null?"":text).replaceAll("(?:\\u00c2)?\\u00a7.","").replace('\u00a0',' ').replaceAll("[\\u200B-\\u200D\\uFEFF]","").trim().replaceAll("\\s+"," ");
     }
 }

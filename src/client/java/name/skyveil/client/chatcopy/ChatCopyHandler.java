@@ -1,7 +1,7 @@
 package name.skyveil.client.chatcopy;
 
 import com.mojang.blaze3d.platform.InputConstants;
-import name.skyveil.client.SkyblockSession;
+
 import name.skyveil.client.config.ConfigManager;
 import name.skyveil.client.mixin.ChatComponentAccessor;
 import net.minecraft.client.Minecraft;
@@ -13,7 +13,7 @@ import net.minecraft.util.Mth;
 /** Copies the complete parent message of the wrapped chat line under the cursor. */
 public final class ChatCopyHandler {
     private ChatCopyHandler(){}
-    public static boolean mouseClicked(MouseButtonEvent event){Minecraft client=Minecraft.getInstance();if(!SkyblockSession.isActive()||!ConfigManager.get().chatCopy.enabled||client.gui==null)return false;
+    public static boolean mouseClicked(MouseButtonEvent event){Minecraft client=Minecraft.getInstance();if(!ConfigManager.get().chatCopy.enabled||client.gui==null)return false;
         ChatCopyBinding binding=ChatCopyManager.normalize(ConfigManager.get().chatCopy.binding);if(!ChatCopyManager.matches(binding,event.button(),key->InputConstants.isKeyDown(client.getWindow(),key)))return false;
         Component message=hoveredMessage(client,event.x(),event.y());if(message==null)return false;String text=plainText(message.getString());if(text.isBlank())return false;client.keyboardHandler.setClipboard(text);client.gui.setOverlayMessage(Component.literal("Copied chat message"),false);return true;
     }

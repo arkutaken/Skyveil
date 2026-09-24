@@ -27,15 +27,15 @@ public final class CustomKeybindEditorScreen extends Screen {
         int left=width/2-150,top=height/2-116;
         nameBox=new EditBox(font,left+12,top+38,276,20,Component.literal("Display name"));nameBox.setMaxLength(64);nameBox.setHint(Component.literal("Auction House"));nameBox.setValue(draft.name==null?"":draft.name);addRenderableWidget(nameBox);
         commandBox=new EditBox(font,left+12,top+78,276,20,Component.literal("Command"));commandBox.setMaxLength(256);commandBox.setHint(Component.literal("/ah"));commandBox.setValue(draft.command==null?"":draft.command);addRenderableWidget(commandBox);
-        keyButton=addRenderableWidget(Button.builder(Component.empty(),button->{capturing=true;refreshButtons();}).bounds(left+12,top+118,134,20).build());
-        enabledButton=addRenderableWidget(Button.builder(Component.empty(),button->{draft.enabled=!draft.enabled;refreshButtons();}).bounds(left+154,top+118,134,20).build());
+        keyButton=addRenderableWidget(new name.skyveil.client.gui.SkyveilButton(left+12,top+118,134,20,Component.empty(),button->{capturing=true;refreshButtons();}));
+        enabledButton=addRenderableWidget(new name.skyveil.client.gui.SkyveilButton(left+154,top+118,134,20,Component.empty(),button->{draft.enabled=!draft.enabled;refreshButtons();}));
         if(existing==null){
-            addRenderableWidget(Button.builder(Component.literal("Save"),button->save()).bounds(left+12,top+174,134,20).build());
-            addRenderableWidget(Button.builder(Component.literal("Cancel"),button->onClose()).bounds(left+154,top+174,134,20).build());
+            addRenderableWidget(new name.skyveil.client.gui.SkyveilButton(left+12,top+174,134,20,Component.literal("Save"),button->save()));
+            addRenderableWidget(new name.skyveil.client.gui.SkyveilButton(left+154,top+174,134,20,Component.literal("Cancel"),button->onClose()));
         }else{
-            addRenderableWidget(Button.builder(Component.literal("Save"),button->save()).bounds(left+12,top+174,86,20).build());
-            addRenderableWidget(Button.builder(Component.literal("Cancel"),button->onClose()).bounds(left+107,top+174,86,20).build());
-            addRenderableWidget(Button.builder(Component.literal("Delete"),button->delete()).bounds(left+202,top+174,86,20).build());
+            addRenderableWidget(new name.skyveil.client.gui.SkyveilButton(left+12,top+174,86,20,Component.literal("Save"),button->save()));
+            addRenderableWidget(new name.skyveil.client.gui.SkyveilButton(left+107,top+174,86,20,Component.literal("Cancel"),button->onClose()));
+            addRenderableWidget(new name.skyveil.client.gui.SkyveilButton(left+202,top+174,86,20,Component.literal("Delete"),button->delete()));
         }
         refreshButtons();setInitialFocus(nameBox);
     }
@@ -69,7 +69,7 @@ public final class CustomKeybindEditorScreen extends Screen {
 
     @Override public void extractRenderState(GuiGraphicsExtractor g,int mx,int my,float partial){
         int left=width/2-150,top=height/2-116;g.fill(0,0,width,height,SkyveilTheme.SCRIM);g.fill(left,top,left+300,top+232,SkyveilTheme.WINDOW);g.outline(left,top,300,232,SkyveilTheme.ACCENT);
-        g.centeredText(font,title,width/2,top+10,SkyveilTheme.TEXT);g.text(font,"Name",left+12,top+27,SkyveilTheme.SECONDARY,false);g.text(font,"Command",left+12,top+67,SkyveilTheme.SECONDARY,false);g.text(font,"Keybind",left+12,top+107,SkyveilTheme.SECONDARY,false);
+        g.centeredText(font,title,width/2,top+10,SkyveilTheme.ACCENT);g.text(font,"Name",left+12,top+27,SkyveilTheme.SECONDARY,false);g.text(font,"Command",left+12,top+67,SkyveilTheme.SECONDARY,false);g.text(font,"Keybind",left+12,top+107,SkyveilTheme.SECONDARY,false);
         String custom=CustomKeybindManager.customConflict(draft.key,existing==null?null:existing.id),other=CustomKeybindManager.otherConflict(draft.key);
         int infoY=top+145;if(custom!=null)g.centeredText(font,"Conflict: assigned to \""+custom+"\".",width/2,infoY,0xFFFF7777);else if(other!=null)g.centeredText(font,"Also bound to "+other+".",width/2,infoY,0xFFFFD166);
         if(!error.isBlank())g.centeredText(font,error,width/2,top+204,0xFFFF7777);

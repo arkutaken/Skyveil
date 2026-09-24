@@ -24,13 +24,13 @@ public final class CustomKeybindManagementScreen extends Screen {
 
     @Override protected void init(){
         panelWidth=Math.min(540,width-28);panelHeight=Math.min(430,height-28);left=(width-panelWidth)/2;top=(height-panelHeight)/2;
-        addRenderableWidget(Button.builder(Component.literal("Add Keybind"),button->minecraft.setScreen(new CustomKeybindEditorScreen(this,null))).bounds(left+12,top+32,104,20).build());
-        addRenderableWidget(Button.builder(Component.literal("Done"),button->onClose()).bounds(left+panelWidth-72,top+32,60,20).build());
+        addRenderableWidget(new name.skyveil.client.gui.SkyveilButton(left+12,top+32,104,20,Component.literal("Add Keybind"),button->minecraft.setScreen(new CustomKeybindEditorScreen(this,null))));
+        addRenderableWidget(new name.skyveil.client.gui.SkyveilButton(left+panelWidth-72,top+32,60,20,Component.literal("Done"),button->onClose()));
     }
 
     @Override public void extractRenderState(GuiGraphicsExtractor g,int mx,int my,float partial){
         g.fill(0,0,width,height,SkyveilTheme.SCRIM);g.fill(left,top,left+panelWidth,top+panelHeight,SkyveilTheme.WINDOW);g.outline(left,top,panelWidth,panelHeight,SkyveilTheme.ACCENT);
-        g.centeredText(font,title,width/2,top+10,SkyveilTheme.TEXT);actions.clear();
+        g.centeredText(font,title,width/2,top+10,SkyveilTheme.ACCENT);actions.clear();
         int viewTop=top+62,viewBottom=top+panelHeight-14,rowWidth=panelWidth-24;
         g.enableScissor(left+12,viewTop,left+panelWidth-12,viewBottom);try{
         List<CustomKeybindDefinition> bindings=CustomKeybindManager.all();int y=viewTop-(int)scroll;

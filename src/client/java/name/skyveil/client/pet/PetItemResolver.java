@@ -4,13 +4,13 @@ import name.skyveil.client.itemsearch.SkyBlockItemIconCatalog;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
-import java.util.HashMap;
+
 import java.util.Locale;
-import java.util.Map;
+
 
 /** Resolves only representations that can be reconstructed safely from client-visible IDs. */
 public final class PetItemResolver {
-    private static final Map<String,ItemStack> CATALOG_ICONS=new HashMap<>();
+
     private PetItemResolver() {}
     public static String displayName(String id){
         if(id==null||id.isBlank())return "";
@@ -21,9 +21,11 @@ public final class PetItemResolver {
     }
     public static ItemStack resolve(String id,String name){
         String internalId=id==null?"":id.trim().toUpperCase(Locale.ROOT);
-        if(!internalId.isBlank()){
-            ItemStack catalogIcon=CATALOG_ICONS.computeIfAbsent(internalId,key->SkyBlockItemIconCatalog.resolve(key));
-            if(!catalogIcon.isEmpty())return catalogIcon.copy();
+        String namedId=(name==null?"":name).trim().toUpperCase(Locale.ROOT).replaceAll("[^A-Z0-9]+","_");
+        for(String candidate:java.util.List.of(internalId,namedId,"PET_ITEM_"+namedId)){
+            if(candidate.isBlank()||candidate.equals("PET_ITEM_"))continue;
+            ItemStack catalogIcon=SkyBlockItemIconCatalog.resolve(candidate);
+            if(!catalogIcon.isEmpty())return catalogIcon;
         }
         String value=((id==null?"":id)+" "+(name==null?"":name)).toUpperCase(Locale.ROOT);
         if(value.contains("SHELMET"))return new ItemStack(Items.TURTLE_HELMET);
@@ -31,7 +33,7 @@ public final class PetItemResolver {
         if(value.contains("SADDLE"))return new ItemStack(Items.SADDLE);
         if(value.contains("EXP SHARE"))return new ItemStack(Items.EXPERIENCE_BOTTLE);
         if(value.contains("TIER BOOST"))return new ItemStack(Items.NETHER_STAR);
-        if(value.contains("PLUSHIE")||value.contains("RELIC")||value.contains("CLOVER")||value.contains("BANDANA"))return new ItemStack(Items.PLAYER_HEAD);
-        return value.isBlank()?ItemStack.EMPTY:new ItemStack(Items.NAME_TAG);
+
+        return ItemStack.EMPTY;
     }
 }

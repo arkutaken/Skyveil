@@ -5,7 +5,6 @@ import com.mojang.blaze3d.platform.InputConstants;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 import java.util.function.IntPredicate;
 

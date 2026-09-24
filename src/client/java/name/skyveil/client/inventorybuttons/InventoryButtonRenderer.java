@@ -17,6 +17,7 @@ import java.util.ArrayList;
 public final class InventoryButtonRenderer {
     private InventoryButtonRenderer() {}
     public static boolean applies(Screen screen){
+        if(DungeonTerminalDetector.matches(screen))return false;
         if(screen instanceof AbstractContainerScreen<?> container&&StoragePreviewManager.isActive(container))return false;
         return InventoryButtonManager.isManagement(screen)
             || ConfigManager.get().inventoryButtons.enabled&&(screen instanceof InventoryScreen||ConfigManager.get().inventoryButtons.showInContainers);
@@ -28,6 +29,7 @@ public final class InventoryButtonRenderer {
         for(var position:InventoryButtonPosition.values()){
             var rectangle=position.rectangle(guiLeft,guiTop,guiWidth,guiHeight,graphics.guiWidth(),graphics.guiHeight(),config.scale);if(rectangle.isEmpty())continue;
             var rect=rectangle.get();InventoryButtonDefinition button=layout.get(position);if(button==null&&!InventoryButtonManager.isManagement(screen))continue;
+            name.skyveil.client.gui.HudVisibility.cover(graphics,rect.x()-1,rect.y()-1,rect.size()+2,rect.size()+2);
             boolean hover=rect.contains(mouseX,mouseY);int background=hover?palette.hover():palette.panel();
             graphics.fill(rect.x(),rect.y(),rect.x()+rect.size(),rect.y()+rect.size(),background);graphics.outline(rect.x(),rect.y(),rect.size(),rect.size(),hover?palette.accent():palette.outline());
             if(button==null)graphics.centeredText(Minecraft.getInstance().font,"+",rect.x()+rect.size()/2,rect.y()+(rect.size()-8)/2,palette.accent());

@@ -1,5 +1,1241 @@
 # Changelog
 
+## 1.24.22
+
+- Improve toggle readability with shadow-free white labels on a darker enabled background.
+- Remove panel backgrounds behind health, mana, and vitality.
+- Automatically fit defense and speed backgrounds and HUD Layout bounds to the displayed number.
+
+## 1.24.21
+
+- Apply the Commissions-inspired dark panel, orange heading, white text, and flat progress-bar style across Skyveil HUD displays and configuration screens.
+- Restyle pet, performance, stats, skill XP, inventory preview, mining, and hunting panels with a shared palette.
+- Add matching flat buttons to HUD Layout, color, inventory-button, and keybind editors.
+- Preserve meaningful stat, rarity, and map colors; remove the old config color switch and inventory-preview purple selector.
+
+## 1.24.20
+
+- Refresh auction data only when prices are requested, at most once every five minutes, using low-priority background threads.
+- Bound auction downloads to two prefetched pages and release processed page data immediately.
+- Compress auction history only during shutdown, removing periodic compression and shared-cache copies from gameplay.
+
+## 1.24.19
+
+- Price pets by type, rarity, and level for Lowest BIN and 3-day auction comparisons.
+- Compare same-level pets without requiring identical XP or held pet items.
+
+## 1.24.18
+
+- Replace the Crystal Hollows player dot and direction ray with a rotating arrowhead.
+- Remove the map's background grid lines.
+- Automatically discover King Yolkar and add a K map marker and world waypoint using his NPC position.
+
+## 1.24.17
+
+- Automatically mark discovered Divan, Goblin Queen's Den, Jungle Temple, Precursor City, and Bal entry points with colored squares on the Crystal Hollows map.
+- Add matching world waypoints with distance labels at the recorded XYZ position.
+- Update markers on re-entry, keep them fixed while exploring, and clear them between worlds. Locations use the server's area-label transitions.
+
+## 1.24.16
+
+- Add a Crystal Hollows region map under Mining with live player position, facing direction, coordinates, and region labels.
+- Support moving, resizing, and right-click configuration from HUD Layout.
+- Hide the map outside Crystal Hollows and while holding the player-list key.
+
+## 1.24.15
+
+- Exclude rolled reforges such as Blended from full craft cost instead of treating them as unpriced inputs.
+- Keep reforge stones and their application fees in the calculation.
+
+## 1.24.14
+
+- Hide Commissions and Pickaxe Ability overlays while holding the player-list key so they do not overlap TAB widgets.
+- Continue tracking live progress and cooldowns while the overlays are hidden.
+
+## 1.24.13
+
+- Make the pickaxe ability display a compact single line with a background sized to its current text.
+- Match HUD Layout selection bounds to the live display dimensions.
+
+## 1.24.12
+
+- Keep the last server stat readings through temporary action-bar interruptions instead of clearing them after ten seconds.
+- Observe original action-bar values before HUD message formatting and hide resource bars until their first server reading.
+- Expand pickaxe widget parsing for named status rows, parenthesized timers, Available in timers, and formatted spacing.
+
+## 1.24.11
+
+- Added colored Lapis, Tungsten, and Umber corpse waypoints with live distances in the Glacite mining areas.
+- Added individual corpse waypoint toggles under Mining. Markers use loaded server entities and clear on area/world changes.
+
+## 1.24.10
+
+- Add a Pickaxe Ability Cooldown HUD under Mining, using live Hypixel widget status.
+- Support cooldown times, Ready and Active states, with movement, resizing, and right-click settings navigation in HUD Layout.
+- Clear old ability status on world changes, disconnects, and missing widget data.
+
+## 1.24.9
+
+- Right-click any display in HUD Layout to open, scroll to, and highlight its exact configuration setting.
+- Save pending layout changes before navigating to settings and show the shortcut in the editor hint.
+
+## 1.24.8
+
+- Add Mining settings and a live Commissions HUD sourced from the Hypixel widget, with positioning through the shared HUD Layout editor.
+- Match three-day auction estimates by paid upgrade configuration and report when no similar active listings exist.
+- Replace auction snapshots only on API updates and retain compact, bounded hourly price history.
+- Correct craft-cost item IDs, drill parts, table-enchantment handling, and Warped reforge lookup.
+- Distinguish inherently soulbound items from Museum-bound items and hide craft costs on unmodified, noncraftable materials.
+- Remove the Active BIN average tooltip row and replace long missing-price lists with a compact count and command diagnostics.
+- Require a version bump for each delivered batch of mod changes.
+
+## 1.24.7
+
+- Verify the shared armor craft-cost calculator across 658 catalog armor IDs and 100 fully upgraded Kuudra set/slot/tier combinations.
+- Add regression coverage for all armor slots, applied books/recombobulation, enchants, reforges, gemstones, stars, and complete prestige chains using controlled prices.
+
+## 1.24.6
+
+- Calculate prestige equipment costs through every previous tier and required star level.
+- Show Kuudra Teeth and Heavy Pearls as required materials alongside the coin estimate instead of failing the whole calculation.
+- Accept innate level-one Kuudra attributes when finding a base item and valuing inherited attributes.
+- Verify Fiery Aurora Chestplate with Loving, enchants, recombobulation, and gemstones using live prices.
+
+## 1.24.5
+
+- Fix unavailable craft costs caused by omitted basic enchanting-table enchants: Aiming, Impaling, Flame I, Piercing, Snipe III, Knockback, and Punch.
+- Add the standalone /skyveilprices diagnostic command and verify registration of both existing aliases.
+- Verify a five-star Precise Terminator with the pictured enchants against live market prices.
+
+## 1.24.4
+
+- Add /sv debugprices to identify missing Auction House tooltip prices in the running client: version, module/session state, price count/age, last download error, held item key, filters, and rendered price row.
+
+## 1.24.3
+
+- Refresh Auction House and Full Craft Cost prices at final screen tooltip construction as well as the shared item callback.
+- Replace cached price rows without duplicates and show Loading during the initial auction download.
+- Add live coverage for Thorny Blossom Necklace with Green Thumb III.
+
+## 1.24.2
+
+- Resolve reforge modifier IDs with different word separators, including blood_shot -> Bloodshot -> Shriveled Cornea, for full craft costs.
+
+## 1.24.1
+
+- Remove the Missing cost details from item tooltips.
+
+## 1.24.0
+
+- Add Full Craft Cost under Interface > Items, using current ingredient buy prices and applied upgrade costs.
+- Include enchants, reforge stones/fees, potato books, recombobulators, gemstones/unlocks, stars, scrolls, and supported consumable upgrades.
+- Bundle recipe and upgrade definitions; report missing costs instead of presenting partial totals.
+- Price noncraftable base items from unmodified auctions to avoid counting applied upgrades twice.
+- Keep a single current market snapshot and only the last hovered calculation; no historical craft-cost cache is written.
+
+## 1.23.4
+
+- Use Fabric's shared item-tooltip callback for Auction House prices.
+- Refresh auction data when entering SkyBlock instead of waiting for an eligible hover.
+- Remove the dependency on a successful Bazaar download before showing Auction House prices.
+- Retry snapshot rollovers, cancel abandoned page requests, retain good snapshots on failures, and log coverage/decoding failures.
+- Match actual soulbound markers, escaped pet metadata, rune variants, and combined enchantment books.
+- Keep single-item tooltips free of redundant totals.
+
+## 1.23.3
+
+- Prevent gameplay HUDs from overlapping the item search field and its visible results panel.
+
+## 1.23.2
+
+- Prevent gameplay HUDs from drawing over visible Inventory Buttons, including scaled buttons.
+
+## 1.23.1
+
+- Match market item IDs through legacy and nested component metadata.
+- Fetch auction pages with four bounded workers to reduce snapshot rollover failures.
+- Show Total only for stacks containing multiple items; keep price numbers white.
+
+## 1.23.0
+
+## 1.23.0
+
+- Add Auction House Item Prices under Interface > Items.
+- Show Lowest BIN and stack total with colored labels and white numbers.
+- Build an asynchronous price snapshot from complete, consistent Hypixel auction pages.
+- Exclude Bazaar products, soulbound items, expired auctions, and non-BIN listings.
+- Compare base item IDs, with pet species/rarity separation; upgrades and pet levels are not appraised.
+## 1.22.1
+
+## 1.23.0
+
+- Add Auction House Item Prices under Interface > Items.
+- Show Lowest BIN and stack total with colored labels and white numbers.
+- Build an asynchronous price snapshot from complete, consistent Hypixel auction pages.
+- Exclude Bazaar products, soulbound items, expired auctions, and non-BIN listings.
+- Compare base item IDs, with pet species/rarity separation; upgrades and pet levels are not appraised.
+## 1.22.1
+
+- Color Bazaar tooltip labels while keeping prices white.
+- Replace "coins (each)" with the stack total alongside the unit price.
+- Format totals with thousands separators and up to one decimal place.
+## 1.22.0
+
+## 1.23.0
+
+- Add Auction House Item Prices under Interface > Items.
+- Show Lowest BIN and stack total with colored labels and white numbers.
+- Build an asynchronous price snapshot from complete, consistent Hypixel auction pages.
+- Exclude Bazaar products, soulbound items, expired auctions, and non-BIN listings.
+- Compare base item IDs, with pet species/rarity separation; upgrades and pet levels are not appraised.
+## 1.22.1
+
+- Color Bazaar tooltip labels while keeping prices white.
+- Replace "coins (each)" with the stack total alongside the unit price.
+- Format totals with thousands separators and up to one decimal place.
+## 1.22.0
+
+- Add Bazaar Item Prices under Interface > Items.
+- Show per-item Insta Buy above Insta Sell using the current best orders.
+- Match Bazaar products, single-enchantment books, legacy dye IDs, and shards; exclude soulbound items.
+- Reuse the shared asynchronous Bazaar request with a one-minute refresh and expire tooltip quotes after three minutes.
+## 1.21.3
+
+## 1.23.0
+
+- Add Auction House Item Prices under Interface > Items.
+- Show Lowest BIN and stack total with colored labels and white numbers.
+- Build an asynchronous price snapshot from complete, consistent Hypixel auction pages.
+- Exclude Bazaar products, soulbound items, expired auctions, and non-BIN listings.
+- Compare base item IDs, with pet species/rarity separation; upgrades and pet levels are not appraised.
+## 1.22.1
+
+- Color Bazaar tooltip labels while keeping prices white.
+- Replace "coins (each)" with the stack total alongside the unit price.
+- Format totals with thousands separators and up to one decimal place.
+## 1.22.0
+
+- Add Bazaar Item Prices under Interface > Items.
+- Show per-item Insta Buy above Insta Sell using the current best orders.
+- Match Bazaar products, single-enchantment books, legacy dye IDs, and shards; exclude soulbound items.
+- Reuse the shared asynchronous Bazaar request with a one-minute refresh and expire tooltip quotes after three minutes.
+## 1.21.3
+
+- Allow Performance Stats, Zoom, and Chat Copy outside SkyBlock.
+- Restrict Inventory Preview and pet tracking to SkyBlock.
+- Keep SkyBlock-specific HUD clipping inactive outside SkyBlock.
+- Clear pending item-protection input when leaving SkyBlock.
+## 1.21.2
+
+## 1.23.0
+
+- Add Auction House Item Prices under Interface > Items.
+- Show Lowest BIN and stack total with colored labels and white numbers.
+- Build an asynchronous price snapshot from complete, consistent Hypixel auction pages.
+- Exclude Bazaar products, soulbound items, expired auctions, and non-BIN listings.
+- Compare base item IDs, with pet species/rarity separation; upgrades and pet levels are not appraised.
+## 1.22.1
+
+- Color Bazaar tooltip labels while keeping prices white.
+- Replace "coins (each)" with the stack total alongside the unit price.
+- Format totals with thousands separators and up to one decimal place.
+## 1.22.0
+
+- Add Bazaar Item Prices under Interface > Items.
+- Show per-item Insta Buy above Insta Sell using the current best orders.
+- Match Bazaar products, single-enchantment books, legacy dye IDs, and shards; exclude soulbound items.
+- Reuse the shared asynchronous Bazaar request with a one-minute refresh and expire tooltip quotes after three minutes.
+## 1.21.3
+
+- Allow Performance Stats, Zoom, and Chat Copy outside SkyBlock.
+- Restrict Inventory Preview and pet tracking to SkyBlock.
+- Keep SkyBlock-specific HUD clipping inactive outside SkyBlock.
+- Clear pending item-protection input when leaving SkyBlock.
+## 1.21.2
+
+- Silence slot-lock toggle chat messages.
+- Shorten item-protection toggle messages to "Item protected!" and "Item not protected!".
+## 1.21.1
+
+## 1.23.0
+
+- Add Auction House Item Prices under Interface > Items.
+- Show Lowest BIN and stack total with colored labels and white numbers.
+- Build an asynchronous price snapshot from complete, consistent Hypixel auction pages.
+- Exclude Bazaar products, soulbound items, expired auctions, and non-BIN listings.
+- Compare base item IDs, with pet species/rarity separation; upgrades and pet levels are not appraised.
+## 1.22.1
+
+- Color Bazaar tooltip labels while keeping prices white.
+- Replace "coins (each)" with the stack total alongside the unit price.
+- Format totals with thousands separators and up to one decimal place.
+## 1.22.0
+
+- Add Bazaar Item Prices under Interface > Items.
+- Show per-item Insta Buy above Insta Sell using the current best orders.
+- Match Bazaar products, single-enchantment books, legacy dye IDs, and shards; exclude soulbound items.
+- Reuse the shared asynchronous Bazaar request with a one-minute refresh and expire tooltip quotes after three minutes.
+## 1.21.3
+
+- Allow Performance Stats, Zoom, and Chat Copy outside SkyBlock.
+- Restrict Inventory Preview and pet tracking to SkyBlock.
+- Keep SkyBlock-specific HUD clipping inactive outside SkyBlock.
+- Clear pending item-protection input when leaving SkyBlock.
+## 1.21.2
+
+- Silence slot-lock toggle chat messages.
+- Shorten item-protection toggle messages to "Item protected!" and "Item not protected!".
+## 1.21.1
+
+- Send drop-protection toggles and blocked-drop messages to chat using the slot-locking prefix.
+- Throttle repeated blocked-drop messages.
+- Mark protected items with a small cyan shield in their upper-right corner, including inventory, hotbar, and storage previews.
+## 1.21.0
+
+## 1.23.0
+
+- Add Auction House Item Prices under Interface > Items.
+- Show Lowest BIN and stack total with colored labels and white numbers.
+- Build an asynchronous price snapshot from complete, consistent Hypixel auction pages.
+- Exclude Bazaar products, soulbound items, expired auctions, and non-BIN listings.
+- Compare base item IDs, with pet species/rarity separation; upgrades and pet levels are not appraised.
+## 1.22.1
+
+- Color Bazaar tooltip labels while keeping prices white.
+- Replace "coins (each)" with the stack total alongside the unit price.
+- Format totals with thousands separators and up to one decimal place.
+## 1.22.0
+
+- Add Bazaar Item Prices under Interface > Items.
+- Show per-item Insta Buy above Insta Sell using the current best orders.
+- Match Bazaar products, single-enchantment books, legacy dye IDs, and shards; exclude soulbound items.
+- Reuse the shared asynchronous Bazaar request with a one-minute refresh and expire tooltip quotes after three minutes.
+## 1.21.3
+
+- Allow Performance Stats, Zoom, and Chat Copy outside SkyBlock.
+- Restrict Inventory Preview and pet tracking to SkyBlock.
+- Keep SkyBlock-specific HUD clipping inactive outside SkyBlock.
+- Clear pending item-protection input when leaving SkyBlock.
+## 1.21.2
+
+- Silence slot-lock toggle chat messages.
+- Shorten item-protection toggle messages to "Item protected!" and "Item not protected!".
+## 1.21.1
+
+- Send drop-protection toggles and blocked-drop messages to chat using the slot-locking prefix.
+- Throttle repeated blocked-drop messages.
+- Mark protected items with a small cyan shield in their upper-right corner, including inventory, hotbar, and storage previews.
+## 1.21.0
+
+- Add item-based drop protection under Interface > Items, separate from slot locking.
+- Press P while hovering an item to toggle protection; configure the key in settings.
+- Protect UUID items individually and UUID-less items by type, with a tooltip indicator.
+- Allow inventory/storage movement while blocking drop-key and outside-inventory drops.
+- Require placing a protected cursor stack before closing the screen to avoid implicit drops.
+## 1.20.0
+
+## 1.23.0
+
+- Add Auction House Item Prices under Interface > Items.
+- Show Lowest BIN and stack total with colored labels and white numbers.
+- Build an asynchronous price snapshot from complete, consistent Hypixel auction pages.
+- Exclude Bazaar products, soulbound items, expired auctions, and non-BIN listings.
+- Compare base item IDs, with pet species/rarity separation; upgrades and pet levels are not appraised.
+## 1.22.1
+
+- Color Bazaar tooltip labels while keeping prices white.
+- Replace "coins (each)" with the stack total alongside the unit price.
+- Format totals with thousands separators and up to one decimal place.
+## 1.22.0
+
+- Add Bazaar Item Prices under Interface > Items.
+- Show per-item Insta Buy above Insta Sell using the current best orders.
+- Match Bazaar products, single-enchantment books, legacy dye IDs, and shards; exclude soulbound items.
+- Reuse the shared asynchronous Bazaar request with a one-minute refresh and expire tooltip quotes after three minutes.
+## 1.21.3
+
+- Allow Performance Stats, Zoom, and Chat Copy outside SkyBlock.
+- Restrict Inventory Preview and pet tracking to SkyBlock.
+- Keep SkyBlock-specific HUD clipping inactive outside SkyBlock.
+- Clear pending item-protection input when leaving SkyBlock.
+## 1.21.2
+
+- Silence slot-lock toggle chat messages.
+- Shorten item-protection toggle messages to "Item protected!" and "Item not protected!".
+## 1.21.1
+
+- Send drop-protection toggles and blocked-drop messages to chat using the slot-locking prefix.
+- Throttle repeated blocked-drop messages.
+- Mark protected items with a small cyan shield in their upper-right corner, including inventory, hotbar, and storage previews.
+## 1.21.0
+
+- Add item-based drop protection under Interface > Items, separate from slot locking.
+- Press P while hovering an item to toggle protection; configure the key in settings.
+- Protect UUID items individually and UUID-less items by type, with a tooltip indicator.
+- Allow inventory/storage movement while blocking drop-key and outside-inventory drops.
+- Require placing a protected cursor stack before closing the screen to avoid implicit drops.
+## 1.20.0
+
+- Add a saved Purple / Black config-theme button beside the Skyveil title.
+- Use readable charcoal panels and silver accents for the Black theme.
+- Apply theme changes immediately without resetting search, accordion, or scroll state.
+## 1.19.6
+
+## 1.23.0
+
+- Add Auction House Item Prices under Interface > Items.
+- Show Lowest BIN and stack total with colored labels and white numbers.
+- Build an asynchronous price snapshot from complete, consistent Hypixel auction pages.
+- Exclude Bazaar products, soulbound items, expired auctions, and non-BIN listings.
+- Compare base item IDs, with pet species/rarity separation; upgrades and pet levels are not appraised.
+## 1.22.1
+
+- Color Bazaar tooltip labels while keeping prices white.
+- Replace "coins (each)" with the stack total alongside the unit price.
+- Format totals with thousands separators and up to one decimal place.
+## 1.22.0
+
+- Add Bazaar Item Prices under Interface > Items.
+- Show per-item Insta Buy above Insta Sell using the current best orders.
+- Match Bazaar products, single-enchantment books, legacy dye IDs, and shards; exclude soulbound items.
+- Reuse the shared asynchronous Bazaar request with a one-minute refresh and expire tooltip quotes after three minutes.
+## 1.21.3
+
+- Allow Performance Stats, Zoom, and Chat Copy outside SkyBlock.
+- Restrict Inventory Preview and pet tracking to SkyBlock.
+- Keep SkyBlock-specific HUD clipping inactive outside SkyBlock.
+- Clear pending item-protection input when leaving SkyBlock.
+## 1.21.2
+
+- Silence slot-lock toggle chat messages.
+- Shorten item-protection toggle messages to "Item protected!" and "Item not protected!".
+## 1.21.1
+
+- Send drop-protection toggles and blocked-drop messages to chat using the slot-locking prefix.
+- Throttle repeated blocked-drop messages.
+- Mark protected items with a small cyan shield in their upper-right corner, including inventory, hotbar, and storage previews.
+## 1.21.0
+
+- Add item-based drop protection under Interface > Items, separate from slot locking.
+- Press P while hovering an item to toggle protection; configure the key in settings.
+- Protect UUID items individually and UUID-less items by type, with a tooltip indicator.
+- Allow inventory/storage movement while blocking drop-key and outside-inventory drops.
+- Require placing a protected cursor stack before closing the screen to avoid implicit drops.
+## 1.20.0
+
+- Add a saved Purple / Black config-theme button beside the Skyveil title.
+- Use readable charcoal panels and silver accents for the Black theme.
+- Apply theme changes immediately without resetting search, accordion, or scroll state.
+## 1.19.6
+
+- Restrict storage-item tooltips and hover highlights to the visible scissor area.
+- Reject live-storage hover and click hit tests outside the workspace viewport.
+- Prevent clipped slots from showing tooltips through the player inventory.
+## 1.19.5
+
+## 1.23.0
+
+- Add Auction House Item Prices under Interface > Items.
+- Show Lowest BIN and stack total with colored labels and white numbers.
+- Build an asynchronous price snapshot from complete, consistent Hypixel auction pages.
+- Exclude Bazaar products, soulbound items, expired auctions, and non-BIN listings.
+- Compare base item IDs, with pet species/rarity separation; upgrades and pet levels are not appraised.
+## 1.22.1
+
+- Color Bazaar tooltip labels while keeping prices white.
+- Replace "coins (each)" with the stack total alongside the unit price.
+- Format totals with thousands separators and up to one decimal place.
+## 1.22.0
+
+- Add Bazaar Item Prices under Interface > Items.
+- Show per-item Insta Buy above Insta Sell using the current best orders.
+- Match Bazaar products, single-enchantment books, legacy dye IDs, and shards; exclude soulbound items.
+- Reuse the shared asynchronous Bazaar request with a one-minute refresh and expire tooltip quotes after three minutes.
+## 1.21.3
+
+- Allow Performance Stats, Zoom, and Chat Copy outside SkyBlock.
+- Restrict Inventory Preview and pet tracking to SkyBlock.
+- Keep SkyBlock-specific HUD clipping inactive outside SkyBlock.
+- Clear pending item-protection input when leaving SkyBlock.
+## 1.21.2
+
+- Silence slot-lock toggle chat messages.
+- Shorten item-protection toggle messages to "Item protected!" and "Item not protected!".
+## 1.21.1
+
+- Send drop-protection toggles and blocked-drop messages to chat using the slot-locking prefix.
+- Throttle repeated blocked-drop messages.
+- Mark protected items with a small cyan shield in their upper-right corner, including inventory, hotbar, and storage previews.
+## 1.21.0
+
+- Add item-based drop protection under Interface > Items, separate from slot locking.
+- Press P while hovering an item to toggle protection; configure the key in settings.
+- Protect UUID items individually and UUID-less items by type, with a tooltip indicator.
+- Allow inventory/storage movement while blocking drop-key and outside-inventory drops.
+- Require placing a protected cursor stack before closing the screen to avoid implicit drops.
+## 1.20.0
+
+- Add a saved Purple / Black config-theme button beside the Skyveil title.
+- Use readable charcoal panels and silver accents for the Black theme.
+- Apply theme changes immediately without resetting search, accordion, or scroll state.
+## 1.19.6
+
+- Restrict storage-item tooltips and hover highlights to the visible scissor area.
+- Reject live-storage hover and click hit tests outside the workspace viewport.
+- Prevent clipped slots from showing tooltips through the player inventory.
+## 1.19.5
+
+- Defer container HUD submission until the current frame's tooltip layout is available.
+- Clip all shared HUD modules against actual tooltip bounds, including tall and scrolled tooltips outside storage panels.
+- Remove the opaque tooltip background workaround and retain normal tooltip styling.
+- Clear queued HUD draws and tooltip bounds after each frame.
+## 1.19.4
+
+## 1.23.0
+
+- Add Auction House Item Prices under Interface > Items.
+- Show Lowest BIN and stack total with colored labels and white numbers.
+- Build an asynchronous price snapshot from complete, consistent Hypixel auction pages.
+- Exclude Bazaar products, soulbound items, expired auctions, and non-BIN listings.
+- Compare base item IDs, with pet species/rarity separation; upgrades and pet levels are not appraised.
+## 1.22.1
+
+- Color Bazaar tooltip labels while keeping prices white.
+- Replace "coins (each)" with the stack total alongside the unit price.
+- Format totals with thousands separators and up to one decimal place.
+## 1.22.0
+
+- Add Bazaar Item Prices under Interface > Items.
+- Show per-item Insta Buy above Insta Sell using the current best orders.
+- Match Bazaar products, single-enchantment books, legacy dye IDs, and shards; exclude soulbound items.
+- Reuse the shared asynchronous Bazaar request with a one-minute refresh and expire tooltip quotes after three minutes.
+## 1.21.3
+
+- Allow Performance Stats, Zoom, and Chat Copy outside SkyBlock.
+- Restrict Inventory Preview and pet tracking to SkyBlock.
+- Keep SkyBlock-specific HUD clipping inactive outside SkyBlock.
+- Clear pending item-protection input when leaving SkyBlock.
+## 1.21.2
+
+- Silence slot-lock toggle chat messages.
+- Shorten item-protection toggle messages to "Item protected!" and "Item not protected!".
+## 1.21.1
+
+- Send drop-protection toggles and blocked-drop messages to chat using the slot-locking prefix.
+- Throttle repeated blocked-drop messages.
+- Mark protected items with a small cyan shield in their upper-right corner, including inventory, hotbar, and storage previews.
+## 1.21.0
+
+- Add item-based drop protection under Interface > Items, separate from slot locking.
+- Press P while hovering an item to toggle protection; configure the key in settings.
+- Protect UUID items individually and UUID-less items by type, with a tooltip indicator.
+- Allow inventory/storage movement while blocking drop-key and outside-inventory drops.
+- Require placing a protected cursor stack before closing the screen to avoid implicit drops.
+## 1.20.0
+
+- Add a saved Purple / Black config-theme button beside the Skyveil title.
+- Use readable charcoal panels and silver accents for the Black theme.
+- Apply theme changes immediately without resetting search, accordion, or scroll state.
+## 1.19.6
+
+- Restrict storage-item tooltips and hover highlights to the visible scissor area.
+- Reject live-storage hover and click hit tests outside the workspace viewport.
+- Prevent clipped slots from showing tooltips through the player inventory.
+## 1.19.5
+
+- Defer container HUD submission until the current frame's tooltip layout is available.
+- Clip all shared HUD modules against actual tooltip bounds, including tall and scrolled tooltips outside storage panels.
+- Remove the opaque tooltip background workaround and retain normal tooltip styling.
+- Clear queued HUD draws and tooltip bounds after each frame.
+## 1.19.4
+
+- Draw container tooltips on a separate layer with an opaque interior to block HUD text showing through.
+- Use final tooltip bounds so the fix also follows oversized, scrolled item tooltips.
+- Preserve tooltip frames, shadows, and HUD placement.
+## 1.19.3
+
+## 1.23.0
+
+- Add Auction House Item Prices under Interface > Items.
+- Show Lowest BIN and stack total with colored labels and white numbers.
+- Build an asynchronous price snapshot from complete, consistent Hypixel auction pages.
+- Exclude Bazaar products, soulbound items, expired auctions, and non-BIN listings.
+- Compare base item IDs, with pet species/rarity separation; upgrades and pet levels are not appraised.
+## 1.22.1
+
+- Color Bazaar tooltip labels while keeping prices white.
+- Replace "coins (each)" with the stack total alongside the unit price.
+- Format totals with thousands separators and up to one decimal place.
+## 1.22.0
+
+- Add Bazaar Item Prices under Interface > Items.
+- Show per-item Insta Buy above Insta Sell using the current best orders.
+- Match Bazaar products, single-enchantment books, legacy dye IDs, and shards; exclude soulbound items.
+- Reuse the shared asynchronous Bazaar request with a one-minute refresh and expire tooltip quotes after three minutes.
+## 1.21.3
+
+- Allow Performance Stats, Zoom, and Chat Copy outside SkyBlock.
+- Restrict Inventory Preview and pet tracking to SkyBlock.
+- Keep SkyBlock-specific HUD clipping inactive outside SkyBlock.
+- Clear pending item-protection input when leaving SkyBlock.
+## 1.21.2
+
+- Silence slot-lock toggle chat messages.
+- Shorten item-protection toggle messages to "Item protected!" and "Item not protected!".
+## 1.21.1
+
+- Send drop-protection toggles and blocked-drop messages to chat using the slot-locking prefix.
+- Throttle repeated blocked-drop messages.
+- Mark protected items with a small cyan shield in their upper-right corner, including inventory, hotbar, and storage previews.
+## 1.21.0
+
+- Add item-based drop protection under Interface > Items, separate from slot locking.
+- Press P while hovering an item to toggle protection; configure the key in settings.
+- Protect UUID items individually and UUID-less items by type, with a tooltip indicator.
+- Allow inventory/storage movement while blocking drop-key and outside-inventory drops.
+- Require placing a protected cursor stack before closing the screen to avoid implicit drops.
+## 1.20.0
+
+- Add a saved Purple / Black config-theme button beside the Skyveil title.
+- Use readable charcoal panels and silver accents for the Black theme.
+- Apply theme changes immediately without resetting search, accordion, or scroll state.
+## 1.19.6
+
+- Restrict storage-item tooltips and hover highlights to the visible scissor area.
+- Reject live-storage hover and click hit tests outside the workspace viewport.
+- Prevent clipped slots from showing tooltips through the player inventory.
+## 1.19.5
+
+- Defer container HUD submission until the current frame's tooltip layout is available.
+- Clip all shared HUD modules against actual tooltip bounds, including tall and scrolled tooltips outside storage panels.
+- Remove the opaque tooltip background workaround and retain normal tooltip styling.
+- Clear queued HUD draws and tooltip bounds after each frame.
+## 1.19.4
+
+- Draw container tooltips on a separate layer with an opaque interior to block HUD text showing through.
+- Use final tooltip bounds so the fix also follows oversized, scrolled item tooltips.
+- Preserve tooltip frames, shadows, and HUD placement.
+## 1.19.3
+
+- Clip gameplay HUDs around the active Storage Preview workspace, inventory, and controls.
+- Apply the shared rule to pet, stats, skill XP, performance, and inventory preview displays.
+- Preserve HUD positions, resizing, and normal inventory dimming.
+## 1.19.2
+
+## 1.23.0
+
+- Add Auction House Item Prices under Interface > Items.
+- Show Lowest BIN and stack total with colored labels and white numbers.
+- Build an asynchronous price snapshot from complete, consistent Hypixel auction pages.
+- Exclude Bazaar products, soulbound items, expired auctions, and non-BIN listings.
+- Compare base item IDs, with pet species/rarity separation; upgrades and pet levels are not appraised.
+## 1.22.1
+
+- Color Bazaar tooltip labels while keeping prices white.
+- Replace "coins (each)" with the stack total alongside the unit price.
+- Format totals with thousands separators and up to one decimal place.
+## 1.22.0
+
+- Add Bazaar Item Prices under Interface > Items.
+- Show per-item Insta Buy above Insta Sell using the current best orders.
+- Match Bazaar products, single-enchantment books, legacy dye IDs, and shards; exclude soulbound items.
+- Reuse the shared asynchronous Bazaar request with a one-minute refresh and expire tooltip quotes after three minutes.
+## 1.21.3
+
+- Allow Performance Stats, Zoom, and Chat Copy outside SkyBlock.
+- Restrict Inventory Preview and pet tracking to SkyBlock.
+- Keep SkyBlock-specific HUD clipping inactive outside SkyBlock.
+- Clear pending item-protection input when leaving SkyBlock.
+## 1.21.2
+
+- Silence slot-lock toggle chat messages.
+- Shorten item-protection toggle messages to "Item protected!" and "Item not protected!".
+## 1.21.1
+
+- Send drop-protection toggles and blocked-drop messages to chat using the slot-locking prefix.
+- Throttle repeated blocked-drop messages.
+- Mark protected items with a small cyan shield in their upper-right corner, including inventory, hotbar, and storage previews.
+## 1.21.0
+
+- Add item-based drop protection under Interface > Items, separate from slot locking.
+- Press P while hovering an item to toggle protection; configure the key in settings.
+- Protect UUID items individually and UUID-less items by type, with a tooltip indicator.
+- Allow inventory/storage movement while blocking drop-key and outside-inventory drops.
+- Require placing a protected cursor stack before closing the screen to avoid implicit drops.
+## 1.20.0
+
+- Add a saved Purple / Black config-theme button beside the Skyveil title.
+- Use readable charcoal panels and silver accents for the Black theme.
+- Apply theme changes immediately without resetting search, accordion, or scroll state.
+## 1.19.6
+
+- Restrict storage-item tooltips and hover highlights to the visible scissor area.
+- Reject live-storage hover and click hit tests outside the workspace viewport.
+- Prevent clipped slots from showing tooltips through the player inventory.
+## 1.19.5
+
+- Defer container HUD submission until the current frame's tooltip layout is available.
+- Clip all shared HUD modules against actual tooltip bounds, including tall and scrolled tooltips outside storage panels.
+- Remove the opaque tooltip background workaround and retain normal tooltip styling.
+- Clear queued HUD draws and tooltip bounds after each frame.
+## 1.19.4
+
+- Draw container tooltips on a separate layer with an opaque interior to block HUD text showing through.
+- Use final tooltip bounds so the fix also follows oversized, scrolled item tooltips.
+- Preserve tooltip frames, shadows, and HUD placement.
+## 1.19.3
+
+- Clip gameplay HUDs around the active Storage Preview workspace, inventory, and controls.
+- Apply the shared rule to pet, stats, skill XP, performance, and inventory preview displays.
+- Preserve HUD positions, resizing, and normal inventory dimming.
+## 1.19.2
+
+- Refactor pet metadata parsing into a structured reader and remove regex-based field extraction.
+- Bound menu scan delays so continuous container packets cannot prevent caching.
+- Keep selected pet snapshots atomic instead of merging visual details from another state.
+- Preserve owned head textures and use bundled species textures when texture data is absent.
+- Resolve held-item icons by ID or lore name without a second growing icon cache.
+- Replace misleading unresolved "No Pet Item" output with a Pets-menu sync prompt.
+- Rebuild the legacy pet cache using the corrected format.
+## 1.19.1
+
+## 1.23.0
+
+- Add Auction House Item Prices under Interface > Items.
+- Show Lowest BIN and stack total with colored labels and white numbers.
+- Build an asynchronous price snapshot from complete, consistent Hypixel auction pages.
+- Exclude Bazaar products, soulbound items, expired auctions, and non-BIN listings.
+- Compare base item IDs, with pet species/rarity separation; upgrades and pet levels are not appraised.
+## 1.22.1
+
+- Color Bazaar tooltip labels while keeping prices white.
+- Replace "coins (each)" with the stack total alongside the unit price.
+- Format totals with thousands separators and up to one decimal place.
+## 1.22.0
+
+- Add Bazaar Item Prices under Interface > Items.
+- Show per-item Insta Buy above Insta Sell using the current best orders.
+- Match Bazaar products, single-enchantment books, legacy dye IDs, and shards; exclude soulbound items.
+- Reuse the shared asynchronous Bazaar request with a one-minute refresh and expire tooltip quotes after three minutes.
+## 1.21.3
+
+- Allow Performance Stats, Zoom, and Chat Copy outside SkyBlock.
+- Restrict Inventory Preview and pet tracking to SkyBlock.
+- Keep SkyBlock-specific HUD clipping inactive outside SkyBlock.
+- Clear pending item-protection input when leaving SkyBlock.
+## 1.21.2
+
+- Silence slot-lock toggle chat messages.
+- Shorten item-protection toggle messages to "Item protected!" and "Item not protected!".
+## 1.21.1
+
+- Send drop-protection toggles and blocked-drop messages to chat using the slot-locking prefix.
+- Throttle repeated blocked-drop messages.
+- Mark protected items with a small cyan shield in their upper-right corner, including inventory, hotbar, and storage previews.
+## 1.21.0
+
+- Add item-based drop protection under Interface > Items, separate from slot locking.
+- Press P while hovering an item to toggle protection; configure the key in settings.
+- Protect UUID items individually and UUID-less items by type, with a tooltip indicator.
+- Allow inventory/storage movement while blocking drop-key and outside-inventory drops.
+- Require placing a protected cursor stack before closing the screen to avoid implicit drops.
+## 1.20.0
+
+- Add a saved Purple / Black config-theme button beside the Skyveil title.
+- Use readable charcoal panels and silver accents for the Black theme.
+- Apply theme changes immediately without resetting search, accordion, or scroll state.
+## 1.19.6
+
+- Restrict storage-item tooltips and hover highlights to the visible scissor area.
+- Reject live-storage hover and click hit tests outside the workspace viewport.
+- Prevent clipped slots from showing tooltips through the player inventory.
+## 1.19.5
+
+- Defer container HUD submission until the current frame's tooltip layout is available.
+- Clip all shared HUD modules against actual tooltip bounds, including tall and scrolled tooltips outside storage panels.
+- Remove the opaque tooltip background workaround and retain normal tooltip styling.
+- Clear queued HUD draws and tooltip bounds after each frame.
+## 1.19.4
+
+- Draw container tooltips on a separate layer with an opaque interior to block HUD text showing through.
+- Use final tooltip bounds so the fix also follows oversized, scrolled item tooltips.
+- Preserve tooltip frames, shadows, and HUD placement.
+## 1.19.3
+
+- Clip gameplay HUDs around the active Storage Preview workspace, inventory, and controls.
+- Apply the shared rule to pet, stats, skill XP, performance, and inventory preview displays.
+- Preserve HUD positions, resizing, and normal inventory dimming.
+## 1.19.2
+
+- Refactor pet metadata parsing into a structured reader and remove regex-based field extraction.
+- Bound menu scan delays so continuous container packets cannot prevent caching.
+- Keep selected pet snapshots atomic instead of merging visual details from another state.
+- Preserve owned head textures and use bundled species textures when texture data is absent.
+- Resolve held-item icons by ID or lore name without a second growing icon cache.
+- Replace misleading unresolved "No Pet Item" output with a Pets-menu sync prompt.
+- Rebuild the legacy pet cache using the corrected format.
+## 1.19.1
+
+- Remove dark squares around HUD item icons while retaining inventory dimming.
+- Add inventory preview background opacity and Purple / Dark Grey controls.
+- Read nested petInfo directly and distinguish pets by name when type metadata is missing.
+## 1.19.0
+
+## 1.23.0
+
+- Add Auction House Item Prices under Interface > Items.
+- Show Lowest BIN and stack total with colored labels and white numbers.
+- Build an asynchronous price snapshot from complete, consistent Hypixel auction pages.
+- Exclude Bazaar products, soulbound items, expired auctions, and non-BIN listings.
+- Compare base item IDs, with pet species/rarity separation; upgrades and pet levels are not appraised.
+## 1.22.1
+
+- Color Bazaar tooltip labels while keeping prices white.
+- Replace "coins (each)" with the stack total alongside the unit price.
+- Format totals with thousands separators and up to one decimal place.
+## 1.22.0
+
+- Add Bazaar Item Prices under Interface > Items.
+- Show per-item Insta Buy above Insta Sell using the current best orders.
+- Match Bazaar products, single-enchantment books, legacy dye IDs, and shards; exclude soulbound items.
+- Reuse the shared asynchronous Bazaar request with a one-minute refresh and expire tooltip quotes after three minutes.
+## 1.21.3
+
+- Allow Performance Stats, Zoom, and Chat Copy outside SkyBlock.
+- Restrict Inventory Preview and pet tracking to SkyBlock.
+- Keep SkyBlock-specific HUD clipping inactive outside SkyBlock.
+- Clear pending item-protection input when leaving SkyBlock.
+## 1.21.2
+
+- Silence slot-lock toggle chat messages.
+- Shorten item-protection toggle messages to "Item protected!" and "Item not protected!".
+## 1.21.1
+
+- Send drop-protection toggles and blocked-drop messages to chat using the slot-locking prefix.
+- Throttle repeated blocked-drop messages.
+- Mark protected items with a small cyan shield in their upper-right corner, including inventory, hotbar, and storage previews.
+## 1.21.0
+
+- Add item-based drop protection under Interface > Items, separate from slot locking.
+- Press P while hovering an item to toggle protection; configure the key in settings.
+- Protect UUID items individually and UUID-less items by type, with a tooltip indicator.
+- Allow inventory/storage movement while blocking drop-key and outside-inventory drops.
+- Require placing a protected cursor stack before closing the screen to avoid implicit drops.
+## 1.20.0
+
+- Add a saved Purple / Black config-theme button beside the Skyveil title.
+- Use readable charcoal panels and silver accents for the Black theme.
+- Apply theme changes immediately without resetting search, accordion, or scroll state.
+## 1.19.6
+
+- Restrict storage-item tooltips and hover highlights to the visible scissor area.
+- Reject live-storage hover and click hit tests outside the workspace viewport.
+- Prevent clipped slots from showing tooltips through the player inventory.
+## 1.19.5
+
+- Defer container HUD submission until the current frame's tooltip layout is available.
+- Clip all shared HUD modules against actual tooltip bounds, including tall and scrolled tooltips outside storage panels.
+- Remove the opaque tooltip background workaround and retain normal tooltip styling.
+- Clear queued HUD draws and tooltip bounds after each frame.
+## 1.19.4
+
+- Draw container tooltips on a separate layer with an opaque interior to block HUD text showing through.
+- Use final tooltip bounds so the fix also follows oversized, scrolled item tooltips.
+- Preserve tooltip frames, shadows, and HUD placement.
+## 1.19.3
+
+- Clip gameplay HUDs around the active Storage Preview workspace, inventory, and controls.
+- Apply the shared rule to pet, stats, skill XP, performance, and inventory preview displays.
+- Preserve HUD positions, resizing, and normal inventory dimming.
+## 1.19.2
+
+- Refactor pet metadata parsing into a structured reader and remove regex-based field extraction.
+- Bound menu scan delays so continuous container packets cannot prevent caching.
+- Keep selected pet snapshots atomic instead of merging visual details from another state.
+- Preserve owned head textures and use bundled species textures when texture data is absent.
+- Resolve held-item icons by ID or lore name without a second growing icon cache.
+- Replace misleading unresolved "No Pet Item" output with a Pets-menu sync prompt.
+- Rebuild the legacy pet cache using the corrected format.
+## 1.19.1
+
+- Remove dark squares around HUD item icons while retaining inventory dimming.
+- Add inventory preview background opacity and Purple / Dark Grey controls.
+- Read nested petInfo directly and distinguish pets by name when type metadata is missing.
+## 1.19.0
+
+- Add a live 27-slot inventory preview with a translucent purple background above the stat displays.
+- Show stack counts and durability using the current inventory contents.
+- Integrate movement, smooth resizing, and alignment into the existing HUD Layout editor.
+- Add the inventory preview toggle under Interface > Screen Overlays.
+## 1.18.2
+
+## 1.23.0
+
+- Add Auction House Item Prices under Interface > Items.
+- Show Lowest BIN and stack total with colored labels and white numbers.
+- Build an asynchronous price snapshot from complete, consistent Hypixel auction pages.
+- Exclude Bazaar products, soulbound items, expired auctions, and non-BIN listings.
+- Compare base item IDs, with pet species/rarity separation; upgrades and pet levels are not appraised.
+## 1.22.1
+
+- Color Bazaar tooltip labels while keeping prices white.
+- Replace "coins (each)" with the stack total alongside the unit price.
+- Format totals with thousands separators and up to one decimal place.
+## 1.22.0
+
+- Add Bazaar Item Prices under Interface > Items.
+- Show per-item Insta Buy above Insta Sell using the current best orders.
+- Match Bazaar products, single-enchantment books, legacy dye IDs, and shards; exclude soulbound items.
+- Reuse the shared asynchronous Bazaar request with a one-minute refresh and expire tooltip quotes after three minutes.
+## 1.21.3
+
+- Allow Performance Stats, Zoom, and Chat Copy outside SkyBlock.
+- Restrict Inventory Preview and pet tracking to SkyBlock.
+- Keep SkyBlock-specific HUD clipping inactive outside SkyBlock.
+- Clear pending item-protection input when leaving SkyBlock.
+## 1.21.2
+
+- Silence slot-lock toggle chat messages.
+- Shorten item-protection toggle messages to "Item protected!" and "Item not protected!".
+## 1.21.1
+
+- Send drop-protection toggles and blocked-drop messages to chat using the slot-locking prefix.
+- Throttle repeated blocked-drop messages.
+- Mark protected items with a small cyan shield in their upper-right corner, including inventory, hotbar, and storage previews.
+## 1.21.0
+
+- Add item-based drop protection under Interface > Items, separate from slot locking.
+- Press P while hovering an item to toggle protection; configure the key in settings.
+- Protect UUID items individually and UUID-less items by type, with a tooltip indicator.
+- Allow inventory/storage movement while blocking drop-key and outside-inventory drops.
+- Require placing a protected cursor stack before closing the screen to avoid implicit drops.
+## 1.20.0
+
+- Add a saved Purple / Black config-theme button beside the Skyveil title.
+- Use readable charcoal panels and silver accents for the Black theme.
+- Apply theme changes immediately without resetting search, accordion, or scroll state.
+## 1.19.6
+
+- Restrict storage-item tooltips and hover highlights to the visible scissor area.
+- Reject live-storage hover and click hit tests outside the workspace viewport.
+- Prevent clipped slots from showing tooltips through the player inventory.
+## 1.19.5
+
+- Defer container HUD submission until the current frame's tooltip layout is available.
+- Clip all shared HUD modules against actual tooltip bounds, including tall and scrolled tooltips outside storage panels.
+- Remove the opaque tooltip background workaround and retain normal tooltip styling.
+- Clear queued HUD draws and tooltip bounds after each frame.
+## 1.19.4
+
+- Draw container tooltips on a separate layer with an opaque interior to block HUD text showing through.
+- Use final tooltip bounds so the fix also follows oversized, scrolled item tooltips.
+- Preserve tooltip frames, shadows, and HUD placement.
+## 1.19.3
+
+- Clip gameplay HUDs around the active Storage Preview workspace, inventory, and controls.
+- Apply the shared rule to pet, stats, skill XP, performance, and inventory preview displays.
+- Preserve HUD positions, resizing, and normal inventory dimming.
+## 1.19.2
+
+- Refactor pet metadata parsing into a structured reader and remove regex-based field extraction.
+- Bound menu scan delays so continuous container packets cannot prevent caching.
+- Keep selected pet snapshots atomic instead of merging visual details from another state.
+- Preserve owned head textures and use bundled species textures when texture data is absent.
+- Resolve held-item icons by ID or lore name without a second growing icon cache.
+- Replace misleading unresolved "No Pet Item" output with a Pets-menu sync prompt.
+- Rebuild the legacy pet cache using the corrected format.
+## 1.19.1
+
+- Remove dark squares around HUD item icons while retaining inventory dimming.
+- Add inventory preview background opacity and Purple / Dark Grey controls.
+- Read nested petInfo directly and distinguish pets by name when type metadata is missing.
+## 1.19.0
+
+- Add a live 27-slot inventory preview with a translucent purple background above the stat displays.
+- Show stack counts and durability using the current inventory contents.
+- Integrate movement, smooth resizing, and alignment into the existing HUD Layout editor.
+- Add the inventory preview toggle under Interface > Screen Overlays.
+## 1.18.2
+
+- Reuse menu-cached pet heads and held items when loadouts or Autopet select pets that have levelled.
+- Keep live XP and selection updates out of the persistent pet cache.
+- Keep UUID-less identities stable across held-item changes and update changed menu details in place.
+- Remove stale entries after all pages of the normal Pets menu have been scanned.
+## 1.18.1
+
+## 1.23.0
+
+- Add Auction House Item Prices under Interface > Items.
+- Show Lowest BIN and stack total with colored labels and white numbers.
+- Build an asynchronous price snapshot from complete, consistent Hypixel auction pages.
+- Exclude Bazaar products, soulbound items, expired auctions, and non-BIN listings.
+- Compare base item IDs, with pet species/rarity separation; upgrades and pet levels are not appraised.
+## 1.22.1
+
+- Color Bazaar tooltip labels while keeping prices white.
+- Replace "coins (each)" with the stack total alongside the unit price.
+- Format totals with thousands separators and up to one decimal place.
+## 1.22.0
+
+- Add Bazaar Item Prices under Interface > Items.
+- Show per-item Insta Buy above Insta Sell using the current best orders.
+- Match Bazaar products, single-enchantment books, legacy dye IDs, and shards; exclude soulbound items.
+- Reuse the shared asynchronous Bazaar request with a one-minute refresh and expire tooltip quotes after three minutes.
+## 1.21.3
+
+- Allow Performance Stats, Zoom, and Chat Copy outside SkyBlock.
+- Restrict Inventory Preview and pet tracking to SkyBlock.
+- Keep SkyBlock-specific HUD clipping inactive outside SkyBlock.
+- Clear pending item-protection input when leaving SkyBlock.
+## 1.21.2
+
+- Silence slot-lock toggle chat messages.
+- Shorten item-protection toggle messages to "Item protected!" and "Item not protected!".
+## 1.21.1
+
+- Send drop-protection toggles and blocked-drop messages to chat using the slot-locking prefix.
+- Throttle repeated blocked-drop messages.
+- Mark protected items with a small cyan shield in their upper-right corner, including inventory, hotbar, and storage previews.
+## 1.21.0
+
+- Add item-based drop protection under Interface > Items, separate from slot locking.
+- Press P while hovering an item to toggle protection; configure the key in settings.
+- Protect UUID items individually and UUID-less items by type, with a tooltip indicator.
+- Allow inventory/storage movement while blocking drop-key and outside-inventory drops.
+- Require placing a protected cursor stack before closing the screen to avoid implicit drops.
+## 1.20.0
+
+- Add a saved Purple / Black config-theme button beside the Skyveil title.
+- Use readable charcoal panels and silver accents for the Black theme.
+- Apply theme changes immediately without resetting search, accordion, or scroll state.
+## 1.19.6
+
+- Restrict storage-item tooltips and hover highlights to the visible scissor area.
+- Reject live-storage hover and click hit tests outside the workspace viewport.
+- Prevent clipped slots from showing tooltips through the player inventory.
+## 1.19.5
+
+- Defer container HUD submission until the current frame's tooltip layout is available.
+- Clip all shared HUD modules against actual tooltip bounds, including tall and scrolled tooltips outside storage panels.
+- Remove the opaque tooltip background workaround and retain normal tooltip styling.
+- Clear queued HUD draws and tooltip bounds after each frame.
+## 1.19.4
+
+- Draw container tooltips on a separate layer with an opaque interior to block HUD text showing through.
+- Use final tooltip bounds so the fix also follows oversized, scrolled item tooltips.
+- Preserve tooltip frames, shadows, and HUD placement.
+## 1.19.3
+
+- Clip gameplay HUDs around the active Storage Preview workspace, inventory, and controls.
+- Apply the shared rule to pet, stats, skill XP, performance, and inventory preview displays.
+- Preserve HUD positions, resizing, and normal inventory dimming.
+## 1.19.2
+
+- Refactor pet metadata parsing into a structured reader and remove regex-based field extraction.
+- Bound menu scan delays so continuous container packets cannot prevent caching.
+- Keep selected pet snapshots atomic instead of merging visual details from another state.
+- Preserve owned head textures and use bundled species textures when texture data is absent.
+- Resolve held-item icons by ID or lore name without a second growing icon cache.
+- Replace misleading unresolved "No Pet Item" output with a Pets-menu sync prompt.
+- Rebuild the legacy pet cache using the corrected format.
+## 1.19.1
+
+- Remove dark squares around HUD item icons while retaining inventory dimming.
+- Add inventory preview background opacity and Purple / Dark Grey controls.
+- Read nested petInfo directly and distinguish pets by name when type metadata is missing.
+## 1.19.0
+
+- Add a live 27-slot inventory preview with a translucent purple background above the stat displays.
+- Show stack counts and durability using the current inventory contents.
+- Integrate movement, smooth resizing, and alignment into the existing HUD Layout editor.
+- Add the inventory preview toggle under Interface > Screen Overlays.
+## 1.18.2
+
+- Reuse menu-cached pet heads and held items when loadouts or Autopet select pets that have levelled.
+- Keep live XP and selection updates out of the persistent pet cache.
+- Keep UUID-less identities stable across held-item changes and update changed menu details in place.
+- Remove stale entries after all pages of the normal Pets menu have been scanned.
+## 1.18.1
+
+- Keep top-level categories in the sidebar and show only the selected category's module accordions.
+- Rename Chat Copy to Chat and move the Bestiary toggle into it.
+- Refine settings spacing, section headers, selection styling, card alignment, and scrollbar clearance.
+## 1.18.0
+
+## 1.23.0
+
+- Add Auction House Item Prices under Interface > Items.
+- Show Lowest BIN and stack total with colored labels and white numbers.
+- Build an asynchronous price snapshot from complete, consistent Hypixel auction pages.
+- Exclude Bazaar products, soulbound items, expired auctions, and non-BIN listings.
+- Compare base item IDs, with pet species/rarity separation; upgrades and pet levels are not appraised.
+## 1.22.1
+
+- Color Bazaar tooltip labels while keeping prices white.
+- Replace "coins (each)" with the stack total alongside the unit price.
+- Format totals with thousands separators and up to one decimal place.
+## 1.22.0
+
+- Add Bazaar Item Prices under Interface > Items.
+- Show per-item Insta Buy above Insta Sell using the current best orders.
+- Match Bazaar products, single-enchantment books, legacy dye IDs, and shards; exclude soulbound items.
+- Reuse the shared asynchronous Bazaar request with a one-minute refresh and expire tooltip quotes after three minutes.
+## 1.21.3
+
+- Allow Performance Stats, Zoom, and Chat Copy outside SkyBlock.
+- Restrict Inventory Preview and pet tracking to SkyBlock.
+- Keep SkyBlock-specific HUD clipping inactive outside SkyBlock.
+- Clear pending item-protection input when leaving SkyBlock.
+## 1.21.2
+
+- Silence slot-lock toggle chat messages.
+- Shorten item-protection toggle messages to "Item protected!" and "Item not protected!".
+## 1.21.1
+
+- Send drop-protection toggles and blocked-drop messages to chat using the slot-locking prefix.
+- Throttle repeated blocked-drop messages.
+- Mark protected items with a small cyan shield in their upper-right corner, including inventory, hotbar, and storage previews.
+## 1.21.0
+
+- Add item-based drop protection under Interface > Items, separate from slot locking.
+- Press P while hovering an item to toggle protection; configure the key in settings.
+- Protect UUID items individually and UUID-less items by type, with a tooltip indicator.
+- Allow inventory/storage movement while blocking drop-key and outside-inventory drops.
+- Require placing a protected cursor stack before closing the screen to avoid implicit drops.
+## 1.20.0
+
+- Add a saved Purple / Black config-theme button beside the Skyveil title.
+- Use readable charcoal panels and silver accents for the Black theme.
+- Apply theme changes immediately without resetting search, accordion, or scroll state.
+## 1.19.6
+
+- Restrict storage-item tooltips and hover highlights to the visible scissor area.
+- Reject live-storage hover and click hit tests outside the workspace viewport.
+- Prevent clipped slots from showing tooltips through the player inventory.
+## 1.19.5
+
+- Defer container HUD submission until the current frame's tooltip layout is available.
+- Clip all shared HUD modules against actual tooltip bounds, including tall and scrolled tooltips outside storage panels.
+- Remove the opaque tooltip background workaround and retain normal tooltip styling.
+- Clear queued HUD draws and tooltip bounds after each frame.
+## 1.19.4
+
+- Draw container tooltips on a separate layer with an opaque interior to block HUD text showing through.
+- Use final tooltip bounds so the fix also follows oversized, scrolled item tooltips.
+- Preserve tooltip frames, shadows, and HUD placement.
+## 1.19.3
+
+- Clip gameplay HUDs around the active Storage Preview workspace, inventory, and controls.
+- Apply the shared rule to pet, stats, skill XP, performance, and inventory preview displays.
+- Preserve HUD positions, resizing, and normal inventory dimming.
+## 1.19.2
+
+- Refactor pet metadata parsing into a structured reader and remove regex-based field extraction.
+- Bound menu scan delays so continuous container packets cannot prevent caching.
+- Keep selected pet snapshots atomic instead of merging visual details from another state.
+- Preserve owned head textures and use bundled species textures when texture data is absent.
+- Resolve held-item icons by ID or lore name without a second growing icon cache.
+- Replace misleading unresolved "No Pet Item" output with a Pets-menu sync prompt.
+- Rebuild the legacy pet cache using the corrected format.
+## 1.19.1
+
+- Remove dark squares around HUD item icons while retaining inventory dimming.
+- Add inventory preview background opacity and Purple / Dark Grey controls.
+- Read nested petInfo directly and distinguish pets by name when type metadata is missing.
+## 1.19.0
+
+- Add a live 27-slot inventory preview with a translucent purple background above the stat displays.
+- Show stack counts and durability using the current inventory contents.
+- Integrate movement, smooth resizing, and alignment into the existing HUD Layout editor.
+- Add the inventory preview toggle under Interface > Screen Overlays.
+## 1.18.2
+
+- Reuse menu-cached pet heads and held items when loadouts or Autopet select pets that have levelled.
+- Keep live XP and selection updates out of the persistent pet cache.
+- Keep UUID-less identities stable across held-item changes and update changed menu details in place.
+- Remove stale entries after all pages of the normal Pets menu have been scanned.
+## 1.18.1
+
+- Keep top-level categories in the sidebar and show only the selected category's module accordions.
+- Rename Chat Copy to Chat and move the Bestiary toggle into it.
+- Refine settings spacing, section headers, selection styling, card alignment, and scrollbar clearance.
+## 1.18.0
+
+- Organize Interface settings into Screen Overlays and Items, with Bestiary available as a direct toggle.
+- Expand categories and groups inline as accordions; show single-setting modules directly.
+- Remove duplicate HUD layout and performance scale controls; use the shared HUD Layout editor.
+- Remove the skill XP inventory dimming option while retaining automatic dimming.
+- Search results expand the matching category and group and highlight the setting.
+## 1.17.6
+
+- Fit stat icons and numbers using their visible glyph bounds, including font bearings and shadows.
+- Tighten the icon/value row above resource bars with a one-pixel gap.
+- Match HUD editor bounds to the compact layout, including shorter Defense and Speed displays.
+
+## 1.17.5
+
+- Fix skill XP remaining in the default action-bar position over player stat displays.
+- Skill XP now uses a separate movable and resizable HUD with XP gained and level progress.
+- Remove the duplicate XP message while preserving other action-bar text.
+- Configure the module under Interface > Skill XP; disabling it restores the default display.
+
+## 1.17.4
+
+- Dim default SkyBlock skill XP messages and switched-item names while inventory or container screens are open.
+- Added Dim Skill XP In Inventory and Show Switched Item Name controls under Interface > Vanilla HUD.
+- Preserve styled text colors and vanilla fade timing without changing inventory buttons or tooltips.
+
+## 1.17.3
+
+- Keep gameplay HUDs visible at reduced brightness while inventory or container screens are open.
+- HUD displays remain passive in inventory; moving and resizing is only available in the HUD editor.
+- Inventory buttons keep their existing appearance and interactions.
+
+## 1.17.2
+
+- Hide Player Stats, Pet Display, and Performance HUDs while inventory or container screens are open.
+- Continue updating HUD data while hidden and preserve Relocate / Resize previews.
+- Inventory buttons and inventory-specific tools retain their existing behavior.
+
+## 1.17.1
+
+- HUD resizing is continuous; alignment guides no longer snap displays to specific sizes.
+- Scroll resizing uses fine proportional adjustments and all HUDs can shrink to 25%.
+- Stat icons and values fit within separate padded areas and scale together.
+- Resize handles sit outside HUD content, and fractional scaling no longer shifts Pet or Performance text away from the editor bounds.
+
+## 1.17.0
+
+- Added visible corner resize handles for every HUD display in Relocate / Resize.
+- Added optional alignment snapping with cyan guides for edges, centers, and screen boundaries.
+- Resizing can snap to neighboring edges while preserving the display's proportions.
+- The HUD editor shows selection coordinates and scale, saves alignment preferences, and retains scroll resizing.
+
+## 1.16.1
+
+- Increased player resource bars from 2 to 8 pixels with a dark border and highlighted fill.
+- Replaced stat name labels with enlarged SkyBlock resource-pack icons beside the values.
+- Improved Vitality contrast and preserved existing HUD positions and scales.
+
+## 1.16.0
+
+- Added separate Health, Defense, Mana, Vitality, and Speed displays under Interface > Player Stats.
+- Every stat has an independently saved position and scale in HUD Layout / Relocate / Resize.
+- Health, Mana, and Vitality include resource bars; Health shows absorption and Mana retains overflow values.
+- While enabled in SkyBlock, Player Stats hides vanilla hearts and hunger and removes replaced action-bar stats while preserving other messages.
+- Supports both legacy stat symbols and current Hypixel resource-pack glyphs.
+
+## 1.15.1
+
+- Performance Display now measures ping/pong round trips over the active connection instead of trusting the server-supplied TAB latency.
+- Missing or stale ping replies display -- rather than a misleading latency value.
+
+## 1.15.0
+
+- Added a compact FPS, color-coded ping, and estimated server TPS display.
+- Performance Display can be toggled in Interface settings and moved or resized in HUD Layout.
+- Fixed pet equip notifications being missed and stale TAB data reverting pet selections.
+
 ## 1.14.9
 
 - Fixed excluded secondary damage numbers remaining visible underneath the Compact Damage display.

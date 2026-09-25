@@ -14,6 +14,8 @@ public final class WardrobeMenuDetector {
     private static final Pattern LEGACY_TITLE=Pattern.compile("^wardrobe(?:\\s*\\(\\s*(\\d+)\\s*/\\s*(\\d+)\\s*\\))?$",Pattern.CASE_INSENSITIVE);
     private WardrobeMenuDetector() {}
 
+    // Verify both title and selector-row evidence; an equipment menu or similarly
+    // named container must not turn number keys into wardrobe actions.
     public static boolean matches(AbstractContainerScreen<?> screen){
         if(!titleMatches(screen)||screen.getMenu().slots.size()<FIRST_SELECTOR_SLOT+SELECTORS_PER_PAGE)return false;
         int layoutSlots=0,evidence=0;

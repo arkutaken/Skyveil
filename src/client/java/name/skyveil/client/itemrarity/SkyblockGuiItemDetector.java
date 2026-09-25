@@ -14,6 +14,8 @@ public final class SkyblockGuiItemDetector {
 
     private SkyblockGuiItemDetector() {}
 
+    // Reject explicit control names/markers only. A real item can appear inside
+    // a menu, so being a GUI stack is not by itself evidence of decoration.
     public static boolean isDecorative(ItemStack stack) {
         if(stack==null||stack.isEmpty())return true;
         String name=stack.getHoverName().getString().trim().toLowerCase(Locale.ROOT);

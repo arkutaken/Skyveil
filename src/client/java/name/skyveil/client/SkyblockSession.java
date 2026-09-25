@@ -39,6 +39,8 @@ public final class SkyblockSession {
         return title!=null&&title.toUpperCase(Locale.ROOT).contains("SKYBLOCK");
     }
 
+    // Compare the host at a domain boundary after removing the port. A string
+    // merely containing 'hypixel.net' is not sufficient to activate gameplay features.
     static boolean matchesHypixelAddress(String address) {
         if(address==null||address.isBlank())return false;
         String host=address.trim().toLowerCase(Locale.ROOT);

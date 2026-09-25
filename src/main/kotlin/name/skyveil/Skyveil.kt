@@ -10,6 +10,8 @@ object Skyveil : ModInitializer {
 		// Client features are registered by SkyveilClientEntrypoint.
 	}
 
+	// Keep resource, HUD and keybinding identifiers in one namespace; callers pass
+	// only the path so renaming a feature cannot accidentally select minecraft:.
 	fun id(path: String): Identifier
 		= Identifier.fromNamespaceAndPath(MOD_ID, path)
 }

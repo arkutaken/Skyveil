@@ -30,6 +30,8 @@ final class CraftCostVisibility {
             }
         }
     }
+    // Hiding a raw recipe ingredient is a presentation rule only. Crafted outputs
+    // and upgraded instances retain the row; ingredient pricing still happens elsewhere.
     boolean shouldShow(CompoundTag extra){
         String id=extra.getStringOr("id","");
         return crafted.contains(id)||!ingredients.contains(id)

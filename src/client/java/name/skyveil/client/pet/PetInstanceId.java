@@ -23,6 +23,7 @@ public record PetInstanceId(String value,Source source,Confidence confidence) {
         return new PetInstanceId(value+"#"+Math.max(1,ordinal),Source.SESSION_DISAMBIGUATED,Confidence.PARTIAL);
     }
 
+    // UUID-less duplicates share a base fingerprint and gain a session ordinal.
     public boolean belongsTo(PetInstanceId base) {
         return equals(base)||value.startsWith(base.value+"#");
     }

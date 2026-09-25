@@ -11,6 +11,11 @@ import net.minecraft.network.chat.Component;
 import java.util.EnumMap;
 import java.util.Locale;
 
+/**
+ * Retains recognized action-bar readings and renders independently positioned
+ * stats. A temporary skill/ability message is not evidence that a stat vanished;
+ * world/session changes, rather than unrelated messages, clear these readings.
+ */
 public final class PlayerStatsHud {
     public static final int WIDTH=116,HEIGHT=17;
     private static final int ICON_SPACE=15,BAR_TOP=12,BAR_HEIGHT=2;
@@ -69,6 +74,8 @@ public final class PlayerStatsHud {
         }
         return remaining;
     }
+    // Editor sizing uses real readings when available, with preview values only
+    // for missing data. Normal gameplay rendering still hides unknown stats.
     private static StatParser.Reading displayValue(PlayerStat stat){
         var value=VALUES.get(stat);return value==null?preview(stat):value;
     }
@@ -76,6 +83,10 @@ public final class PlayerStatsHud {
         return format(value.value())+(stat.resource?"/"+format(value.maximum()):"")
             +(value.overflow()>0?" +"+format(value.overflow()):"");
     }
+    /**
+     * Unscaled width shared by drawing, clamping, and the layout editor.
+     * Resource bars stay fixed; numeric-only stats fit the current formatted value.
+     */
     public static int contentWidth(PlayerStat stat){
         if(stat.resource)return WIDTH;
         return ICON_SPACE+Minecraft.getInstance().font.width(number(stat,displayValue(stat)))+4;

@@ -27,6 +27,8 @@ public final class AttributeShardResolver {
     private static final Map<String,String> DISPLAY_TO_SUBTYPE=displayLookup();
     private AttributeShardResolver(){}
 
+    // Prefer structured IDs. Only known catalog names are accepted by the display
+    // fallback; arbitrary named items must not become attribute identities.
     public static Identity resolve(ItemStack stack){
         if(stack==null||stack.isEmpty())return null;
         String internalId=resolveInternalId(stack);

@@ -44,4 +44,26 @@ class DrillPartCraftCostTest {
         assertEquals(Set.of("RUBY_POLISHED_DRILL_ENGINE"),result.missing());
         assertEquals(List.of("TITANIUM_DRILL_4","RUBY_POLISHED_DRILL_ENGINE"),requested);
     }
+    @Test void installedPartsFallBackToRecipesWhenDirectListingsAreMissing(){
+        // Only the installed tank is reconstructed; absent engine/module slots add nothing.
+        var catalog=com.google.gson.JsonParser.parseString("""
+            {"recipes":{"GEMSTONE_FUEL_TANK":[{"count":1,"ingredients":{"TITANIUM_FUEL_TANK":1,"GEMSTONE_MIXTURE":10}}],
+            "TITANIUM_FUEL_TANK":[{"count":1,"ingredients":{"REFINED_TITANIUM":10}}]}}
+            """).getAsJsonObject();
+        var item=drill();item.putString("drill_part_fuel_tank","gemstone_fuel_tank");
+        var prices=Map.of("TITANIUM_DRILL_4",100.0,"GEMSTONE_MIXTURE",2.0,"REFINED_TITANIUM",3.0);
+        var result=new CraftCostCalculator(catalog,prices::get).calculate(item);
+        assertEquals(150.0,result.coins());
+        assertTrue(result.missing().isEmpty());
+        assertTrue(new CraftCostVisibility(CraftCostTooltip.catalog()).shouldShow(item));
+    }
+    @Test void missingRecipeIngredientsStillLeaveFullCostUnavailable(){
+        var catalog=com.google.gson.JsonParser.parseString("""
+            {"recipes":{"GEMSTONE_FUEL_TANK":[{"count":1,"ingredients":{"UNKNOWN_INPUT":1}}]}}
+            """).getAsJsonObject();
+        var item=drill();item.putString("drill_part_fuel_tank","gemstone_fuel_tank");
+        var result=new CraftCostCalculator(catalog,id->id.equals("TITANIUM_DRILL_4")?100.0:null).calculate(item);
+        assertNull(result.coins());
+        assertEquals(Set.of("GEMSTONE_FUEL_TANK"),result.missing());
+    }
 }

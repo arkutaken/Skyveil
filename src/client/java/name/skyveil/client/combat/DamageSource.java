@@ -9,5 +9,6 @@ enum DamageSource {
     FIRE,
     THUNDERLORD,
     PET,
+    // Unclassified effects remain distinct from confirmed melee for source filtering.
     OTHER
 }

@@ -35,6 +35,8 @@ public final class PetDisplayHud {
     public static void renderPreview(GuiGraphicsExtractor graphics,Minecraft client){var c=ConfigManager.get().petDisplay;renderContents(graphics,client,previewData(),c.hudX,c.hudY,(float)c.scale);}
     public static void renderConfigPreview(GuiGraphicsExtractor graphics,Minecraft client,int x,int y,float scale){renderContents(graphics,client,previewData(),x,y,scale);}
 
+    // Measure every visible text row, including the held item, so drawing and
+    // layout-editor hitboxes use the same unscaled content dimensions.
     public static int contentWidth(Minecraft client,PetData data) {
         if(data==null)return Math.max(116,client.font.width("No Pet Equipped")+PADDING*2);
         int width=PADDING+ICON+4+Math.max(client.font.width(data.name()),client.font.width(levelText(data)))+PADDING;
@@ -61,7 +63,7 @@ public final class PetDisplayHud {
         graphics.pose().pushMatrix();try{graphics.pose().translate(x,y);graphics.pose().scale(scale,scale);
         var config=ConfigManager.get().petDisplay;
         int alpha=(int)Math.round(config.backgroundOpacity*255)&255;
-        int rarityRgb=data==null||data.rarity()==null?0x9B6CFF:data.rarity().rgb();
+        int rarityRgb=data==null||data.rarity()==null?0xFFAA00:data.rarity().rgb();
         var style=PetDisplayStyle.from(config.style);var palette=style.palette(rarityRgb,alpha);
         if(alpha>0&&palette.background()) {
             graphics.fill(px,py,px+width,py+height,HudVisibility.color(palette.backgroundColor()));
@@ -78,7 +80,6 @@ public final class PetDisplayHud {
         int iconX=px+inset,iconY=py+top;
         if(!icon.isEmpty())graphics.item(icon,iconX,iconY);
         int textX=iconX+ICON+4;
-        int rarityColor=0xFF000000|(data.rarity()==null?0xFFFFFF:data.rarity().rgb());
         graphics.text(client.font,data.name(),textX,py+top,HudVisibility.color(name.skyveil.client.gui.SkyveilTheme.ACCENT),true);
         graphics.text(client.font,levelText(data),textX,py+top+11,HudVisibility.color(data.levelKnown()?0xFFFFFFFF:0xFFAAAAAA),true);
         graphics.text(client.font,xpText(data),px+PADDING,py+28,HudVisibility.color(data.maxed()?0xFFFFAA00:0xFFAAAAAA),true);
@@ -92,7 +93,7 @@ public final class PetDisplayHud {
         if(showItemRow(data)) {
             ItemStack item=data.petItemIcon()==null?ItemStack.EMPTY:data.petItemIcon();
             if(!item.isEmpty()){graphics.item(item,px+inset,py+cursorY+1);}
-            int itemColor=data.hasPetItem()?(data.petItemRgb()!=0?0xFF000000|data.petItemRgb():data.petItemRarity()==null?0xFFE5D8FF:0xFF000000|data.petItemRarity().rgb()):0xFF777777;
+            int itemColor=data.hasPetItem()?(data.petItemRgb()!=0?0xFF000000|data.petItemRgb():data.petItemRarity()==null?0xFFFFFFFF:0xFF000000|data.petItemRarity().rgb()):0xFF777777;
             graphics.text(client.font,itemText(data),px+inset+ICON+4,py+cursorY+5,HudVisibility.color(itemColor),true);
         }
         if(HudVisibility.dimmed())graphics.fill(0,0,width,height,0x44000000);

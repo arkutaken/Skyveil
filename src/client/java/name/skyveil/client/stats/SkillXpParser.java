@@ -10,6 +10,8 @@ public final class SkillXpParser {
     private SkillXpParser(){}
     public static Reading parse(String text){
         if(text==null||text.isEmpty())return null;
+        // Strip formatting for matching while retaining original character offsets
+        // so the HUD can remove only this segment from the styled action bar.
         StringBuilder plain=new StringBuilder();int[] offsets=new int[text.length()];
         for(int i=0;i<text.length();i++){
             if(text.charAt(i)=='\u00a7'&&i+1<text.length()){i++;continue;}

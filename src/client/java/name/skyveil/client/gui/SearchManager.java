@@ -29,6 +29,8 @@ public final class SearchManager {
         if(normalizedQuery.isEmpty())return List.of();
         ensureIndex();
         List<Result> matches=new ArrayList<>();
+        // Exact names outrank prefixes, then substrings. Descriptions and internal
+        // setting keys deliberately do not create user-visible name matches.
         for(IndexedFeature feature:index){
             int rank=feature.normalizedName.equals(normalizedQuery)?0:feature.normalizedName.startsWith(normalizedQuery)?1:
                 feature.normalizedName.contains(normalizedQuery)?2:-1;

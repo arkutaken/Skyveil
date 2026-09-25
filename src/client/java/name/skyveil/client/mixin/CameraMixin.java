@@ -10,6 +10,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 /** Applies zoom after vanilla has calculated effects such as sprinting, fluids, and death FOV. */
 @Mixin(Camera.class)
 public abstract class CameraMixin {
+    // Use the computed return value as input; replacing an earlier FOV constant
+    // would bypass vanilla's other camera effects.
     @Inject(method="calculateFov",at=@At("RETURN"),cancellable=true)
     private void skyveil$zoomFov(float partialTick,CallbackInfoReturnable<Float> cir){cir.setReturnValue(ZoomManager.modifyFov(cir.getReturnValue()));}
 }

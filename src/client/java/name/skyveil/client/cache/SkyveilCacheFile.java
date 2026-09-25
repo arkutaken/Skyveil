@@ -25,6 +25,8 @@ final class SkyveilCacheFile {
         }catch(Exception exception){return new LoadResult(emptyRoot(),Status.REJECTED);}
     }
 
+    // Write and validate the temporary file before replacing the old cache. The
+    // finally block removes the temporary path after success or failure.
     static boolean save(Path path,CompoundTag root)throws IOException{
         if(path==null||!valid(root))return false;
         Files.createDirectories(path.getParent());Path temporary=temporary(path);

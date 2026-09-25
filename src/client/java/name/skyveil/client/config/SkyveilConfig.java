@@ -6,6 +6,8 @@ import java.util.Map;
 
 /** Persistent client-only settings. Public fields keep the JSON easy to inspect and migrate. */
 public final class SkyveilConfig {
+    // Configuration schema version, not the mod's release version. Migrations use
+    // this to repair older JSON while field initializers supply new defaults.
     public int version = 31;
     public boolean auctionTooltip=true;
     public boolean fullCraftCost=true;
@@ -25,7 +27,7 @@ public final class SkyveilConfig {
     public boolean compactDamagePet = false;
     public boolean compactDamageOther = false;
     public boolean storagePreview = true;
-    public String storagePreviewTheme = "DARK_PURPLE";
+    public String storagePreviewTheme = "DARK";
     public Zoom zoom = new Zoom();
     public Bestiary bestiary = new Bestiary();
     public Hunting hunting = new Hunting();
@@ -113,7 +115,7 @@ public final class SkyveilConfig {
     }
     public static final class InventoryPreview {
         public double backgroundOpacity=.4;
-        public String backgroundColor="PURPLE";
+        public String backgroundColor="DARK";
         public boolean enabled=true;
         public int hudX=-1,hudY=-1;
         public double scale=1;

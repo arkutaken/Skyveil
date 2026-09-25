@@ -10,6 +10,8 @@ public final class PetLevelParser {
     private static final Pattern WIDGET_SUFFIX=Pattern.compile("(?i)^(.+?)\\s*[(\\[]\\s*lvl\\s*(\\d{1,4})\\s*[)\\]]\\s*$");
     private PetLevelParser() {}
 
+    // General item names require an explicit bracketed level. More permissive
+    // formats are accepted only by parseWidget after the caller scopes the section.
     public static Parsed parse(String displayedName) {
         if(displayedName==null)return null;
         String plain=displayedName.replaceAll("\u00a7.","").trim();

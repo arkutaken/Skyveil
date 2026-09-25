@@ -30,6 +30,7 @@ public final class ItemLinkOverlayRenderer {
         for(Slot candidate:menu.slots)if(ItemProtectionManager.playerInventoryIndex(candidate)==inventoryIndex)return candidate;return null;
     }
 
+    // Integer Bresenham stepping joins slot centers without relying on a line renderer.
     private static void drawLine(GuiGraphicsExtractor graphics,int x0,int y0,int x1,int y1){
         int dx=Math.abs(x1-x0),sx=x0<x1?1:-1,dy=-Math.abs(y1-y0),sy=y0<y1?1:-1,error=dx+dy;
         while(true){graphics.fill(x0,y0,x0+1,y0+1,LINE);if(x0==x1&&y0==y1)break;int twice=2*error;if(twice>=dy){error+=dy;x0+=sx;}if(twice<=dx){error+=dx;y0+=sy;}}

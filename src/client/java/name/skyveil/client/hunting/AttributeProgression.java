@@ -27,6 +27,7 @@ public final class AttributeProgression {
             syphoned=nextThreshold-shardsToNext;
         }
         long rawRemaining=Math.max(0,maximum-syphoned);
+        // Owned base shards reduce what must be purchased, but are not yet syphoned.
         long purchaseRemaining=Math.max(0,rawRemaining-Math.max(0,ownedBaseShards));
         return new Result(true,currentTier,syphoned,maximum,rawRemaining,purchaseRemaining);
     }

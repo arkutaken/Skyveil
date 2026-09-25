@@ -10,6 +10,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(LocalPlayer.class)
 public abstract class LocalPlayerMixin {
+    // Cover world hotbar drops as well as menu drops: item identity protection
+    // and slot locks are separate reasons to reject the same action.
     @Inject(method="drop",at=@At("HEAD"),cancellable=true)
     private void skyveil$preventLockedDrop(boolean fullStack,CallbackInfoReturnable<Boolean> cir){
         if(!SkyblockSession.isActive())return;

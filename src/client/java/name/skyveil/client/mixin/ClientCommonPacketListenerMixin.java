@@ -14,6 +14,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 /** Cancels only the vanilla swap-hands action when either participating stack is protected. */
 @Mixin(ClientCommonPacketListenerImpl.class)
 public abstract class ClientCommonPacketListenerMixin {
+    // Intercept only swap-hands packets. The offhand uses player inventory index
+    // 40, which must be checked alongside the selected hotbar slot.
     @Inject(method="send",at=@At("HEAD"),cancellable=true)
     private void skyveil$preventLockedHandSwap(Packet<?> packet,CallbackInfo ci){
         if(!SkyblockSession.isActive())return;

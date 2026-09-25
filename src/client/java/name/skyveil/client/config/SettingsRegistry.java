@@ -14,6 +14,8 @@ public final class SettingsRegistry {
     static void changed(){revision++;}
     public static ConfigCategory register(String id,String name,String description){var category=new ConfigCategory(id,name,description);CATEGORIES.add(category);changed();return category;}
 
+    // Register once. Keys are stable navigation identifiers; labels and descriptions
+    // may change without breaking HUD right-click targets.
     public static void registerDefaults(){
         if(!CATEGORIES.isEmpty())return;
 
@@ -32,9 +34,9 @@ public final class SettingsRegistry {
         overlays
             .add(SettingDefinition.toggle("hud.performance.enabled","Enable Performance Display","Shows FPS, ping, and TPS in the top-left corner by default.",()->ConfigManager.get().performance.enabled,v->ConfigManager.get().performance.enabled=v));
         overlays
-            .add(SettingDefinition.choice("general.darkMode","Dark Mode","Changes the appearance of Minecraft inventory and container GUIs.",List.of("Default","Dark","Dark Purple"),
-                ()->switch(ConfigManager.get().darkMode){case "DARK"->"Dark";case "DARK_PURPLE"->"Dark Purple";default->"Default";},
-                value->ConfigManager.get().darkMode=switch(value){case "Dark"->"DARK";case "Dark Purple"->"DARK_PURPLE";default->"DEFAULT";}));
+            .add(SettingDefinition.choice("general.darkMode","Dark Mode","Changes the appearance of Minecraft inventory and container GUIs.",List.of("Default","Dark"),
+                ()->switch(ConfigManager.get().darkMode){case "DARK"->"Dark";default->"Default";},
+                value->ConfigManager.get().darkMode=switch(value){case "Dark"->"DARK";default->"DEFAULT";}));
         items.add(SettingDefinition.toggle("general.scrollableTooltips","Scrollable Tooltips","Allows oversized item tooltips to be scrolled with the mouse wheel.",()->ConfigManager.get().scrollableTooltips,v->ConfigManager.get().scrollableTooltips=v));
         items.add(SettingDefinition.toggle("general.fullCraftCost","Full Craft Cost","Estimate recipe ingredients plus applied upgrades at current buy prices. Missing costs show Unavailable; XP, time, and random reforge rolls are not priced.",()->ConfigManager.get().fullCraftCost,v->ConfigManager.get().fullCraftCost=v));
         items.add(SettingDefinition.toggle("general.auctionTooltip","Auction House Item Prices","Show lowest BIN and a rolling 3-day average. Lowest BIN compares base items; the 3-day estimate requires matching upgrades on active listings.",()->ConfigManager.get().auctionTooltip,v->ConfigManager.get().auctionTooltip=v));
@@ -46,9 +48,9 @@ public final class SettingsRegistry {
             .add(SettingDefinition.keybind("general.zoom.key","Zoom Key","Hold to zoom. Scroll while held to change magnification.",()->ConfigManager.get().zoom.key,v->ConfigManager.get().zoom.key=v));
         overlays
             .add(SettingDefinition.toggle("general.storagePreview","Enable Storage Preview","Turns owned Ender Chest and Backpack previews into a persistent storage workspace beside the player inventory.",()->ConfigManager.get().storagePreview,v->ConfigManager.get().storagePreview=v))
-            .add(SettingDefinition.choice("general.storagePreviewTheme","Storage Preview Color","Changes only the Storage Preview appearance.",List.of("Default","Dark","Dark Purple"),
-                ()->switch(ConfigManager.get().storagePreviewTheme){case "DARK"->"Dark";case "DARK_PURPLE"->"Dark Purple";default->"Default";},
-                value->ConfigManager.get().storagePreviewTheme=switch(value){case "Dark"->"DARK";case "Dark Purple"->"DARK_PURPLE";default->"DEFAULT";}));
+            .add(SettingDefinition.choice("general.storagePreviewTheme","Storage Preview Color","Changes only the Storage Preview appearance.",List.of("Default","Dark"),
+                ()->switch(ConfigManager.get().storagePreviewTheme){case "DARK"->"Dark";default->"Default";},
+                value->ConfigManager.get().storagePreviewTheme=switch(value){case "Dark"->"DARK";default->"DEFAULT";}));
         ui.add("inventory_buttons","Inventory Buttons","Create and customize command buttons surrounding inventory menus.")
             .add(SettingDefinition.toggle("general.inventoryButtons.enabled","Enable Inventory Buttons","Shows saved command buttons around inventory screens.",()->ConfigManager.get().inventoryButtons.enabled,v->ConfigManager.get().inventoryButtons.enabled=v))
             .add(SettingDefinition.button("general.inventoryButtons.manage","Manage Buttons","Opens your inventory with the surrounding button editor visible.",name.skyveil.client.inventorybuttons.InventoryButtonManagementScreen::open))

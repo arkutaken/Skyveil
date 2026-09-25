@@ -9,6 +9,7 @@ public final class ItemLockOverlayRenderer {
     private ItemLockOverlayRenderer(){}
     public static void draw(GuiGraphicsExtractor graphics,int slotX,int slotY){
         var config=ConfigManager.get().itemProtection;if(!config.enabled||!config.showLockIcon)return;
+        // Apply user opacity to primitive colors; the lock has no texture/font dependency.
         int alpha=(int)Math.round(config.lockIconOpacity*140.0);int yellow=(alpha<<24)|0xFFD21F,darkYellow=(alpha<<24)|0xB8860B;
         int x=slotX+1,y=slotY+1;
         graphics.fill(x+4,y,x+10,y+2,yellow);graphics.fill(x+2,y+1,x+5,y+7,yellow);graphics.fill(x+9,y+1,x+12,y+7,yellow);

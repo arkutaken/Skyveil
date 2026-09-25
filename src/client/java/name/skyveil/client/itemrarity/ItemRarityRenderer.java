@@ -21,6 +21,8 @@ public final class ItemRarityRenderer {
     public static void drawBelowItem(GuiGraphicsExtractor graphics,ItemStack stack,int x,int y,SkyblockRarity fallbackRarity) {
         var config=ConfigManager.get().itemRarity;
         if(!config.enabled||stack==null||stack.isEmpty())return;
+        // The fallback rarity is part of the cache key: the same stack can gain
+        // more authoritative pet-menu evidence without its components changing.
         int fingerprint=ItemStack.hashItemAndComponents(stack),fallbackRgb=fallbackRarity==null?-1:fallbackRarity.rgb();
         CachedBackground cached=BACKGROUNDS.get(stack);
         if(cached==null||cached.fingerprint()!=fingerprint||cached.fallbackRgb()!=fallbackRgb){

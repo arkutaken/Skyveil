@@ -29,6 +29,8 @@ public final class InventoryButtonManager {
     public static List<InventoryButtonDefinition> all(){refreshCache();return cachedButtons;}
     public static Map<InventoryButtonPosition,InventoryButtonDefinition> layout(){refreshCache();return cachedLayout;}
     public static InventoryButtonDefinition at(InventoryButtonPosition position){return layout().get(position);}
+    // A logical position holds one button. Replace both an older copy of this ID
+    // and any entry occupying the chosen position before rebuilding the layout.
     public static void save(InventoryButtonDefinition definition){
         sanitize();InventoryButtonDefinition normalized=normalize(definition.copy());
         ConfigManager.get().inventoryButtons.buttons.removeIf(button->Objects.equals(button.id,normalized.id)||InventoryButtonPosition.parse(button.position)==InventoryButtonPosition.parse(normalized.position));
@@ -46,6 +48,8 @@ public final class InventoryButtonManager {
         if(definition==null||!definition.enabled||!ConfigManager.get().inventoryButtons.enabled)return;
         executeCommand(definition.command);
     }
+    // Give registered client commands first refusal; send only unhandled commands
+    // to the server, without a leading slash.
     public static void executeCommand(String raw){
         String command=normalizeCommand(raw);Minecraft client=Minecraft.getInstance();if(command.isBlank()||client.getConnection()==null)return;
         if(!ClientCommandInternals.executeCommand(command))client.getConnection().sendCommand(command);

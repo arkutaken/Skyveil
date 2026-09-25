@@ -6,5 +6,7 @@ import net.minecraft.world.item.ItemStack;
 public final class SkyBlockItemIconCatalog {
     private SkyBlockItemIconCatalog() {}
 
+    // Exact internal IDs avoid fuzzy name collisions; the catalog returns a copy
+    // so callers can change display components without changing its cached template.
     public static ItemStack resolve(String internalId){return ItemSearchCatalog.stackByInternalName(internalId);}
 }

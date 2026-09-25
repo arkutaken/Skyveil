@@ -1,5 +1,49 @@
 # Changelog
 
+## 1.24.29
+
+- Repair malformed optional legacy settings without resetting unrelated configuration.
+- Split configuration migration into focused, commented methods and share command alias registration.
+- Prevent repeated price decoration from growing tooltips or retaining stale Bazaar rows.
+- Reuse item metadata during Bazaar decoration and publish Bazaar quotes with matching timestamps.
+- Prevent clipped custom keybind controls from receiving clicks outside their viewport.
+- Clean partial and rejected updater downloads after failure or installation.
+
+## 1.24.28
+
+- Remove seven unused imports and color variables from inventory/config screens and performance/pet HUDs.
+- Preserve existing display behavior while clearing source warnings.
+
+## 1.24.27
+
+- Remove purple UI themes and replace custom purple accents with neutral, orange, or green colors.
+- Migrate saved purple container, storage, and inventory-preview styles to Dark.
+- Preserve server item rarity colors and game-data color detection.
+
+## 1.24.26
+
+- Show only full craft cost for minions, removing cached auction and Bazaar price rows.
+- Fall back to known ingredient recipes when installed drill parts or other upgrade materials have no direct market quote.
+- Add regression coverage for minion row filtering and drill-part recipe fallback.
+
+## 1.24.25
+
+- Add inline explanations throughout all 148 production Java and Kotlin source files.
+- Document state ownership, parsing rules, input handling, rendering order, cache behavior, and lifecycle dependencies beside the code.
+- Preserve existing executable code; this release improves source readability.
+
+## 1.24.24
+
+- Add inline explanations for Bestiary chat buffering, state transitions, timeout handling, and styled summaries.
+- Explain dungeon tooltip metadata validation, floor mapping, and insertion behavior beside the code.
+- Expand dense branches for readability without changing their behavior.
+
+## 1.24.23
+
+- Add a code-reading guide covering feature flow, settings, HUDs, pricing, and release checks.
+- Refresh architecture and pricing documentation to match the current implementation.
+- Document lifecycle ordering, cache ownership, auction matching, and dynamic HUD sizing in code.
+
 ## 1.24.22
 
 - Improve toggle readability with shadow-free white labels on a darker enabled background.

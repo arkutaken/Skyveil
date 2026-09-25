@@ -8,7 +8,6 @@ import name.skyveil.client.stats.SkillXpHud;
 import name.skyveil.client.stats.PlayerStatsHud;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
@@ -27,6 +26,9 @@ public final class HudEditorScreen extends Screen {
     private Double verticalGuide,horizontalGuide;
 
     @FunctionalInterface private interface LayoutSetter {void set(int x,int y,double scale);}
+    // Suppliers keep hit boxes current when text widths change. Width/height are
+    // unscaled GUI units; bounds applies scale exactly once. settingKey is the
+    // SettingsRegistry target opened by a right-click.
     private record Element(String name,String settingKey,IntSupplier x,IntSupplier y,IntSupplier width,IntSupplier height,
                            DoubleSupplier scale,LayoutSetter setter){
         HudAlignment.Rect bounds(){return new HudAlignment.Rect(x.getAsInt(),y.getAsInt(),width.getAsInt()*scale.getAsDouble(),height.getAsInt()*scale.getAsDouble());}
@@ -212,6 +214,8 @@ public final class HudEditorScreen extends Screen {
         return true;
     }
 
+    // Persist only after layout edits; simply opening/closing the editor should
+    // not enqueue redundant configuration writes.
     private void saveIfDirty(){if(dirty){ConfigManager.save();dirty=false;}}
     @Override public void removed(){saveIfDirty();super.removed();}
     @Override public void onClose(){saveIfDirty();super.onClose();}

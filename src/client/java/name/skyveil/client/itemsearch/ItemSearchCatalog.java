@@ -38,6 +38,8 @@ final class ItemSearchCatalog {
     private static volatile List<Entry> entries;
     private ItemSearchCatalog(){}
 
+    // Normal search requires every word to match. lore: queries instead inspect
+    // visible inventory stacks and should not populate the catalog result grid.
     static List<Entry> search(String input){
         if(isLoreSearch(input))return List.of();String query=normalize(input);if(query.isBlank())return List.of();String[] terms=query.split(" ");ArrayList<Entry> matches=new ArrayList<>();
         for(Entry entry:entries())if(matches(entry.searchText,terms))matches.add(entry);

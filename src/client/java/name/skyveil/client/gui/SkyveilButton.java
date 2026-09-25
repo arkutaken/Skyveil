@@ -10,6 +10,8 @@ public final class SkyveilButton extends Button {
     public SkyveilButton(int x,int y,int width,int height,Component label,OnPress press){
         super(x,y,width,height,label,press,DEFAULT_NARRATION);
     }
+    // Replace only button visuals; inherited Button behavior still owns input,
+    // focus and narration. Keyboard focus receives the same highlight as hover.
     @Override protected void extractContents(GuiGraphicsExtractor graphics,int mouseX,int mouseY,float delta){
         boolean highlighted=isHoveredOrFocused();
         graphics.fill(getX(),getY(),getX()+getWidth(),getY()+getHeight(),highlighted?SkyveilTheme.HOVER:SkyveilTheme.CARD);

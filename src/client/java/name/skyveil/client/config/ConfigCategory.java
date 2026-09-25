@@ -5,6 +5,8 @@ import java.util.List;
 
 public final class ConfigCategory {
     public final String id, displayName, description;
+    // Preserve registration order for the sidebar/content view. Use add() to
+    // advance the registry revision and invalidate the search index.
     public final List<SettingDefinition> settings=new ArrayList<>();
     public final List<ConfigSubcategory> subcategories = new ArrayList<>();
     public ConfigCategory(String id,String displayName,String description){this.id=id;this.displayName=displayName;this.description=description;}

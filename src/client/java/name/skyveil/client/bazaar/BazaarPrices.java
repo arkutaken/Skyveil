@@ -6,22 +6,26 @@ import java.util.HashMap;
 
 /** Full-market, decimal quotes from the existing shared Bazaar request. */
 public final class BazaarPrices {
-    private static volatile Map<String,Quote> prices=Map.of();
-    private static volatile long received,apiUpdated;
+    // Publish quotes and timestamps together so render readers never mix generations.
+    private record Snapshot(Map<String,Quote> prices,long received,long apiUpdated){}
+    private static volatile Snapshot snapshot=new Snapshot(Map.of(),0,0);
     private BazaarPrices(){}
-    public static long revision(){return received;}
+    public static long revision(){return snapshot.received();}
     public record Quote(Double buy,Double sell){}
-    public static void update(JsonObject root){
+    // The shard service supplies the same response to this full-market view;
+    // unchanged API generations must not advance its revision or freshness time.
+    public static synchronized void update(JsonObject root){
         if(!root.has("success")||!root.get("success").getAsBoolean())return;
         long updated=root.has("lastUpdated")?root.get("lastUpdated").getAsLong():0;
-        if(updated>0&&updated<=apiUpdated)return;
-        prices=parse(root);received=System.currentTimeMillis();apiUpdated=updated;
+        if(updated>0&&updated<=snapshot.apiUpdated())return;
+        snapshot=new Snapshot(parse(root),System.currentTimeMillis(),updated);
     }
-    public static boolean hasSnapshot(){return !prices.isEmpty();}
-    public static boolean isProduct(String id){return prices.containsKey(id);}
+    public static boolean hasSnapshot(){return !snapshot.prices().isEmpty();}
+    public static boolean isProduct(String id){return snapshot.prices().containsKey(id);}
     public static Quote quote(String product){
         name.skyveil.client.hunting.ShardPriceService.ensureFresh();
-        return System.currentTimeMillis()-received>180_000?null:prices.get(product);
+        Snapshot current=snapshot;
+        return System.currentTimeMillis()-current.received()>180_000?null:current.prices().get(product);
     }
     public static Map<String,Quote> parse(JsonObject root){
         Map<String,Quote> result=new HashMap<>();

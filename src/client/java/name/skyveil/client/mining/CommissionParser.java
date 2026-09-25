@@ -16,6 +16,8 @@ public final class CommissionParser {
             if(HEADER.matcher(line).matches()){inside=true;continue;}
             if(!inside)continue;
             var match=PROGRESS.matcher(line);
+            // The first non-progress row ends this widget. Continuing would risk
+            // treating percentages from the next TAB section as commissions.
             if(!match.matches())break;
             String name=match.group(1).trim(),progress=match.group(2).toUpperCase(Locale.ROOT);
             double fraction;

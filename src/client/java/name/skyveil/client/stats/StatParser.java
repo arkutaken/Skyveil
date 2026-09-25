@@ -14,6 +14,8 @@ public final class StatParser {
         +"(?:\\s*"+N+"[ʬ\\uE017])?",Pattern.CASE_INSENSITIVE);
     private static final Pattern SCALAR=Pattern.compile("(?<![\\d.,/])"+N+"\\s*([❈\\uE008](?:\\s*Defense\\b)?|Defense\\b|[✦\\uE022](?:\\s*Speed\\b)?|Speed\\b)",Pattern.CASE_INSENSITIVE);
     private StatParser(){}
+    // start/end are offsets in the original text (end exclusive), not the stripped
+    // matching buffer. Scalar stats use maximum=0; overflow is separate from the bar.
     public record Reading(PlayerStat stat,double value,double maximum,int start,int end,double overflow){
         public Reading(PlayerStat stat,double value,double maximum,int start,int end){this(stat,value,maximum,start,end,0);}
         public double fraction(){return maximum>0?Math.max(0,Math.min(1,value/maximum)):0;}

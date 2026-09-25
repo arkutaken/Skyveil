@@ -64,6 +64,8 @@ public final class HudAlignment {
         return Math.max(MIN_SCALE,Math.min(MAX_SCALE,scale*Math.exp(scroll*.02)));
     }
 
+    // Project mouse movement onto the element's width/height vector. One scale
+    // preserves aspect ratio even when the corner is dragged diagonally.
     public static double resizeScale(double startScale,double dx,double dy,double baseWidth,double baseHeight){
         return Math.max(MIN_SCALE,Math.min(MAX_SCALE,startScale+(dx*baseWidth+dy*baseHeight)/(baseWidth*baseWidth+baseHeight*baseHeight)));
     }

@@ -17,6 +17,7 @@ public final class DungeonItemTooltip {
     private static final Pattern RARITY_FOOTER=Pattern.compile("(?:^| )(?:VERY SPECIAL|COMMON|UNCOMMON|RARE|EPIC|LEGENDARY|LEGENJERRY|MYTHIC|DIVINE|SPECIAL|SUPREME|ULTIMATE|ADMIN)(?: |$)");
     private DungeonItemTooltip() {}
 
+    /** Leaves the original list untouched when server metadata cannot identify the drop. */
     public static List<Component> decorate(ItemStack stack,List<Component> original) {
         Info info=inspect(stack);
         return info==null?original:decorate(original,info);
@@ -28,9 +29,16 @@ public final class DungeonItemTooltip {
             .append(Component.literal(info.floor()).withStyle(ChatFormatting.AQUA))
             .append(Component.literal("  •  Quality: ").withStyle(ChatFormatting.DARK_GRAY))
             .append(Component.literal(info.quality()+"/50").withStyle(qualityColor(info.quality())));
+        // Copy rather than mutate the caller's tooltip. Insert immediately above
+        // the final rarity footer; append if another mod removed that footer.
         ArrayList<Component> result=new ArrayList<>(original);
         int insertion=result.size();
-        for(int index=result.size()-1;index>=0;index--){if(isRarityFooter(result.get(index))){insertion=index;break;}}
+        for(int index=result.size()-1;index>=0;index--){
+            if(isRarityFooter(result.get(index))){
+                insertion=index;
+                break;
+            }
+        }
         result.add(insertion,line);
         return List.copyOf(result);
     }
@@ -39,6 +47,8 @@ public final class DungeonItemTooltip {
         if(stack==null||stack.isEmpty())return null;
         var custom=stack.get(DataComponents.CUSTOM_DATA);
         if(custom==null||custom.isEmpty())return null;
+        // Item data may wrap ExtraAttributes in compounds/lists, or expose those
+        // fields directly at the root. Support both layouts without modifying NBT.
         CompoundTag root=custom.copyTag(),attributes=findExtraAttributes(root,0);
         return inspectAttributes(attributes==null?root:attributes);
     }
@@ -46,22 +56,35 @@ public final class DungeonItemTooltip {
     static Info inspectAttributes(CompoundTag attributes) {
         Integer quality=integer(attributes,"baseStatBoostPercentage","base_stat_boost_percentage");
         Integer tier=integer(attributes,"item_tier");
+        // Missing/unsupported data is not a zero-quality drop: omit the row.
         if(quality==null||quality<1||quality>50||tier==null)return null;
         String floor=floor(tier,string(attributes,"dungeon_skill_req"));
         return floor==null?null:new Info(floor,quality);
     }
 
+    /**
+     * Interprets the encoded drop tier using the Catacombs requirement where
+     * normal and Master Mode tiers overlap. E means Entrance, F normal, M Master.
+     * Unsupported tiers return null rather than a guessed display label.
+     */
     static String floor(int tier,String requirement) {
         if(tier==0)return "E";
         if(tier<1||tier>10)return null;
         String[] parts=(requirement==null?"":requirement.trim()).split(":",2);
         if(parts.length==2&&parts[0].equalsIgnoreCase("CATACOMBS")) {
-            try{if(Integer.parseInt(parts[1].trim())-tier>19&&tier>=4)return "M"+(tier-3);}catch(NumberFormatException ignored){}
+            // A high requirement disambiguates overlapping Master Mode tiers.
+            // Malformed requirements fall back to the tier-only mapping below.
+            try{
+                if(Integer.parseInt(parts[1].trim())-tier>19&&tier>=4)return "M"+(tier-3);
+            }catch(NumberFormatException ignored){}
         }
+        // Tiers beyond normal F7 use the Master Mode offset without ambiguity.
         if(tier>=8)return "M"+(tier-3);
         return "F"+tier;
     }
 
+    // Visual quality bands do not alter the reported server percentage; perfect
+    // 50/50 quality gets its own color rather than sharing the near-perfect band.
     private static ChatFormatting qualityColor(int quality) {
         if(quality<=17)return ChatFormatting.RED;
         if(quality<=33)return ChatFormatting.YELLOW;
@@ -76,6 +99,8 @@ public final class DungeonItemTooltip {
     }
 
     private static CompoundTag findExtraAttributes(CompoundTag tag,int depth) {
+        // Bound traversal of arbitrary custom data. Search direct keys first,
+        // then compound/list children, accepting the first matching compound.
         if(tag==null||depth>7)return null;
         for(var entry:tag.entrySet())if(entry.getKey().equalsIgnoreCase("ExtraAttributes")){
             var compound=entry.getValue().asCompound();if(compound.isPresent())return compound.get();
@@ -89,6 +114,8 @@ public final class DungeonItemTooltip {
         return null;
     }
 
+    // Aliases and case-insensitive keys accommodate the supported NBT layouts.
+    // Null distinguishes an absent/non-numeric field from an actual zero.
     private static Integer integer(CompoundTag tag,String... wanted) {
         if(tag==null)return null;
         for(var entry:tag.entrySet())for(String key:wanted)if(entry.getKey().equalsIgnoreCase(key)){
@@ -103,5 +130,6 @@ public final class DungeonItemTooltip {
         return "";
     }
 
+    /** Parsed display data: floor label and base-stat quality on the 1..50 scale. */
     public record Info(String floor,int quality) {}
 }

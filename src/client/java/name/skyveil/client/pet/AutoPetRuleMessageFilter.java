@@ -16,6 +16,7 @@ public final class AutoPetRuleMessageFilter {
         return shouldSuppressText(component==null?"":component.getString(),overlay,ConfigManager.get().petDisplay.hideAutoPetRuleMessage);
     }
 
+    // Hide only chat notifications, never action-bar overlays that may contain live data.
     static boolean shouldSuppressText(String text,boolean overlay,boolean enabled){return enabled&&!overlay&&matchesText(text);}
     static boolean matchesText(String text){
         if(text==null)return false;

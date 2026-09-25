@@ -7,6 +7,11 @@ import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 
+/**
+ * Displays the server's pickaxe-ability TAB widget, sampled every five ticks.
+ * It does not infer a cooldown from a local ability-use timer. Missing readings
+ * hide the live HUD; a synthetic reading is used only by the layout preview.
+ */
 public final class PickaxeAbilityHud {
     private static final int PADDING=3;
     private static PickaxeAbilityParser.Reading reading;
@@ -35,6 +40,8 @@ public final class PickaxeAbilityHud {
     private static String status(PickaxeAbilityParser.Reading value){
         return value.ready()?"Ready":value.status();
     }
+    // Measure exactly the status text used by render; the editor and screen-edge
+    // clamping must shrink/grow along with the current ability name and timer.
     public static int width(boolean preview){
         var value=value(preview);
         if(value==null)return 0;

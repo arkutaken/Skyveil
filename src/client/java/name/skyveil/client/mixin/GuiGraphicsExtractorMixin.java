@@ -25,6 +25,8 @@ public abstract class GuiGraphicsExtractorMixin {
         g.fill(sx+2,sy+4,sx+4,sy+6,0xFF55FFFF);
     }
 
+    // Tooltip background extraction exposes the final positioned bounds, including
+    // scrolling; reserve that area before deferred container HUDs are submitted.
     @org.spongepowered.asm.mixin.injection.ModifyArgs(
         method="tooltip",
         at=@At(value="INVOKE",target="Lnet/minecraft/client/gui/screens/inventory/tooltip/TooltipRenderUtil;extractTooltipBackground(Lnet/minecraft/client/gui/GuiGraphicsExtractor;IIIILnet/minecraft/resources/Identifier;)V"))

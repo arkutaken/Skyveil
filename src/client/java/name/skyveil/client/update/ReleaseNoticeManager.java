@@ -25,6 +25,7 @@ public final class ReleaseNoticeManager {
 
     public static void initialize(){pending=!VERSION.equals(readLastSeenVersion());}
 
+    // Wait until chat has a player recipient before marking this version as seen.
     public static void tick(Minecraft client){
         if(!pending||client.player==null)return;
         show(client);pending=false;writeLastSeenVersion();
@@ -38,7 +39,7 @@ public final class ReleaseNoticeManager {
     }
 
     private static void show(Minecraft client){
-        client.player.sendSystemMessage(Component.literal("[Skyveil] ").withStyle(ChatFormatting.LIGHT_PURPLE)
+        client.player.sendSystemMessage(Component.literal("[Skyveil] ").withStyle(ChatFormatting.GOLD)
             .append(Component.literal("Version "+VERSION+" installed").withStyle(ChatFormatting.GOLD)));
         if(NOTES.isEmpty())return;
         client.player.sendSystemMessage(Component.literal("What's new:").withStyle(ChatFormatting.YELLOW));

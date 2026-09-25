@@ -23,6 +23,8 @@ public record PetData(
     ItemStack petIcon,
     ItemStack petItemIcon
 ) {
+    // Known flags distinguish missing evidence from real zero XP; MAX LEVEL is
+    // a separate state and does not need a positive next-level denominator.
     public double xpRemaining(){return levelKnown&&xpKnown&&!maxed?Math.max(0,xpForNextLevel-currentLevelXp):0;}
     public double progress(){return levelKnown&&maxed?1:levelKnown&&xpKnown&&xpForNextLevel>0?Math.max(0,Math.min(1,currentLevelXp/xpForNextLevel)):0;}
     public boolean hasPetItem(){return petItemName!=null&&!petItemName.isBlank();}

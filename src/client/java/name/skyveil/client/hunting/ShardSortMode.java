@@ -7,6 +7,7 @@ public enum ShardSortMode {
     private final String label;
     ShardSortMode(String label){this.label=label;}
     public String label(){return label;}
+    // Persist enum names, not translated labels; old/invalid values use rarity sorting.
     public static ShardSortMode parse(String value){
         try{return valueOf(value);}catch(Exception ignored){return RARITY;}
     }

@@ -34,11 +34,15 @@ public final class SkyveilConfigScreen extends Screen {
     private double scroll,maxScroll;
     private String lastSearchQuery="";
     private List<SearchManager.Result> searchResults=List.of();
+    // Navigation waits for row layout before scrolling to a setting. Selection,
+    // highlighting, slider dragging and key capture have distinct lifetimes.
     private SettingDefinition pendingScrollSetting,highlightedSetting,draggedSlider,awaitingKey,awaitingChord;
     private final LinkedHashSet<Integer> capturedChordKeys=new LinkedHashSet<>();
     private long highlightUntil;
     private int left,top,windowWidth,windowHeight,sidebarWidth,contentX,contentTop,contentRight,contentBottom;
     private int dragSliderStart,dragSliderEnd;
+    // The rendered row geometry is also the input hit-test map; rebuilding it
+    // prevents clicks from using stale coordinates after search/accordion changes.
     private final List<Row> visibleRows=new ArrayList<>();
 
     public SkyveilConfigScreen(){super(Component.literal("Skyveil Settings"));}

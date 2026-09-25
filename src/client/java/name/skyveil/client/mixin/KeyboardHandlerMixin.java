@@ -13,6 +13,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 /** Completes deferred lock/link handling at Minecraft's actual 26.1.2 keyboard dispatcher. */
 @Mixin(KeyboardHandler.class)
 public abstract class KeyboardHandlerMixin {
+    // Observe release globally, including after a screen transition, so a key
+    // press cannot leave the lock/link state stuck waiting for a lost release.
     @Inject(method="keyPress",at=@At("HEAD"))
     private void skyveil$releaseItemProtectionKey(long window,int action,KeyEvent event,CallbackInfo ci){
         if(action==GLFW.GLFW_RELEASE&&event.key()==ConfigManager.get().itemProtection.protectItemKey)name.skyveil.client.itemprotection.ProtectedItemManager.releaseKey();

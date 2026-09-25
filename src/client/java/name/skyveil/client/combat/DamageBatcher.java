@@ -20,6 +20,8 @@ final class DamageBatcher {
         if(batch.hits.size()==MAX_HITS)batch.sum=batch.sum.subtract(batch.hits.removeFirst());
         batch.hits.addLast(damage);batch.sum=batch.sum.add(damage);batch.lastHitTick=tick;batch.expiresAt=tick+DISPLAY_TICKS;return batch;
     }
+    // Secondary damage augments the most recent melee sample, not the hit count.
+    // Without a recent primary sample there is no safe batch to attach it to.
     Batch addSecondary(int targetId,BigInteger damage,long tick){
         Batch batch=targets.get(targetId);if(batch==null||batch.hits.isEmpty()||tick-batch.lastHitTick>AGGREGATION_TICKS)return null;
         BigInteger combined=batch.hits.removeLast().add(damage);batch.hits.addLast(combined);batch.sum=batch.sum.add(damage);batch.expiresAt=tick+DISPLAY_TICKS;return batch;

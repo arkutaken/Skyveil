@@ -1,29 +1,58 @@
 # Skyveil architecture
 
-Skyveil is a client-only Fabric mod. Shared metadata and the small Kotlin identifier helper live in `src/main`; all Minecraft-facing behavior lives in the `client` source set. `SkyveilClientEntrypoint` is the composition root and guards initialization so callbacks are registered once.
+Start with the [code guide](CODE_GUIDE.md) for a reading order and common editing tasks. This document describes the runtime boundaries; [pricing](CRAFT_COST.md) explains the market and replacement-cost rules.
 
-## Lifecycle and event flow
+## Source and startup
 
-Initialization loads configuration, initializes reusable managers, registers retained HUDs, and installs one end-of-client-tick callback. Mixins are limited to points where Fabric events do not expose the required screen, packet, entity, tooltip, or input state. The required mixin configuration makes mapping or signature drift fail during development instead of silently disabling behavior.
+Skyveil is a client-only Fabric mod. Loom's split source sets are configured in [build.gradle.kts](../build.gradle.kts). The small Kotlin mod initializer and shared metadata live in `src/main`; Minecraft-facing features live in `src/client/java/name/skyveil/client`. Tests mirror those packages under `src/test/java`.
 
-Managers compare the current connection, level, or screen identity with the object they previously observed and clear transient data when that owner changes. Container packet mixins only mark menu-derived state dirty; parsing and rebuilding happen later on the client thread. Render callbacks consume prepared state and do not perform network or disk I/O.
+[Fabric metadata](../src/main/resources/fabric.mod.json) names the entrypoints. [SkyveilClientEntrypoint](../src/client/java/name/skyveil/client/SkyveilClientEntrypoint.java) wires configuration, caches, managers, tooltip callbacks, HUDs, commands, ticks, disconnects, and shutdown. Its initialization guard prevents duplicate registration.
+
+## Events and state
+
+`SkyblockSession` identifies whether SkyBlock features should run. The end-of-client-tick callback updates session state before most feature managers. Features with their own reset logic also receive ticks outside SkyBlock so they can discard stale observations.
+
+The usual flow is server evidence (item data, action bar, TAB widgets, scoreboard, or menu packets), then parsing and retained state, then rendering. Parser classes isolate text interpretation from Minecraft UI code. Managers own state and lifecycle; HUD classes draw it. Some HUD classes also own their small tick-driven state.
+
+The [mixin manifest](../src/client/resources/skyveil.client.mixins.json) lists hooks for screen/input, packets, camera, entities, and tooltip rendering. Mixins bridge Minecraft paths that need interception or access; follow the manager they call to find feature policy. Required injections make missing hooks fail visibly when mappings change.
+
+World, connection, and menu identities determine the lifetime of observations. Resetting matters: a commission, corpse, or discovered structure from one world must not appear in the next. Pet tracking has additional transfer/revalidation rules; consult `PetTracker` and its tests before changing them.
 
 ## Threads and persistence
 
-Minecraft callbacks, menu inspection, input handling, and rendering run on the client thread. `ConfigManager.save()` validates the mutable settings model, serializes a snapshot on the caller, and queues an atomic temporary-file replacement on one worker. The client-stopping callback waits briefly for that queue to drain so the final UI edit is not lost.
+Minecraft objects are inspected on the client thread. Network services perform HTTP work on workers and publish snapshots for readers. A quote lookup may schedule work but does not wait for its HTTP response. Craft-cost calculation itself is synchronous and bounded, with the most recent hovered result briefly retained.
 
-Skyveil has no Auction House, Bazaar, or NPC price client, refresh scheduler, or price cache. The retained Attribute Menu panel derives identity, rarity, ownership, and required quantities from local item data plus the bundled rarity catalog. SkyCoFL can be installed independently for its own tooltip and market features, but SkyCoFL currently documents cross-mod API access as planned rather than exposing a stable consumer interface, so Skyveil does not access its internals or duplicate its network traffic.
+| Owner | Data and lifetime |
+| --- | --- |
+| `ConfigManager` | Mutable settings; validation and JSON snapshot on save, serialized disk writes on one worker to `config/skyveil.json`. |
+| `SkyveilCacheManager` | Shared runtime NBT cache at `config/skyveil/skyveil-cache.nbt`; asynchronous startup load, in-memory section updates, atomic replacement at normal shutdown if dirty. |
+| `AuctionPrices` | One published immutable market snapshot; demand-triggered refresh with a five-minute retry interval, two download workers, and two prefetched pages. |
+| `AuctionHistory` | Latest matching-listing average per observed hour in a rolling 72-hour window; guarded by its monitor, compressed into the shared cache at shutdown. |
+| `CraftCostTooltip` | Only the last hovered calculation, reused for up to one second unless market revisions change; reset on disconnect. |
+| Mining HUDs | Live observations scoped to the current world/connection; no persistent map of old lobby discoveries. |
 
-## Feature packages
+Auction history must flush into the cache **before** `SkyveilCacheManager.shutdown()`. Other feature flushes follow the same ownership rule. Do not move history compression into tooltip rendering or every auction refresh. Shutdown persistence means an abnormal process termination may lose observations from that session.
 
-- `config`, `gui`: settings registry, searchable configuration screen, themes, and HUD positioning.
-- `hunting`: Attribute Menu detection, lobby-scoped observations, progression calculations, and local rarity/quantity sorting.
-- `combat`: event-driven Compact Damage classification and bounded target-specific label aggregation; it never removes or mutates server entities.
-- `zoom`: configurable hold-key state and bounded scroll-selected camera FOV magnification; no item-use or overlay behavior.
-- `pet`: menu/tab/chat evidence fusion for the currently equipped pet. Connection changes invalidate world evidence; same-network server transfers retain the last pet as stale until the tab widget or `/pets` revalidates it.
-- `itemprotection`, `inventorybuttons`, `customkeybind`, `wardrobe`: screen-aware input features that consume events only inside their verified bounds or menus.
-- `mixin`: narrow bridges into mapping-sensitive Minecraft paths. Each class explains why its hook is necessary.
+Auction refresh downloads a complete generation before publishing it. Mixed generations, HTTP failures, or mostly undecodable data cannot publish a partial replacement. Current quotes older than 15 minutes are unavailable. This bounds stale display, but a full refresh still transfers the auction pages; the implementation does not claim zero network or CPU cost.
+
+## Feature map
+
+| Packages | Responsibility |
+| --- | --- |
+| `config`, `gui` | Settings model/registry, search, shared theme, HUD layout and occlusion. |
+| `auction`, `bazaar`, `craftcost` | Market snapshots, tooltip comparisons, recipes and applied-upgrade costs. |
+| `mining` | Commissions, pickaxe widget, Crystal Hollows map/discoveries, corpse waypoints. |
+| `stats`, `performance` | Action-bar statistics, skill XP, FPS/ping/TPS displays. |
+| `pet` | Equipped-pet evidence from TAB, chat and menus; XP/level calculation and HUD. |
+| `hunting` | Attribute/shard identity, progression, menu lifecycle, sorting and prices. |
+| `storage`, `equipment`, `itemsearch` | Observed inventory previews, shortcuts and bundled item search. |
+| `itemprotection`, `inventorybuttons`, `customkeybind`, `wardrobe` | Screen-aware input handling and inventory controls. |
+| `combat`, `slayer`, `zoom` | Damage aggregation, boss overlay and camera zoom. |
+| `itemrarity`, `dungeon`, `tooltip`, `chatcopy`, `bestiary` | Item presentation, tooltip scrolling and chat features. |
+| `update`, `cache`, `mixin` | Release notices/updater, persistence and Minecraft integration. |
 
 ## Build and release
 
-`build.gradle.kts` defines the split Loom source sets, Java/Kotlin 25 targets, JUnit tests, resource version expansion, semantic version bump tasks, and the single `release` path. A release contains exactly `build/release/Skyveil-<version>.jar`; the task verifies metadata, classes, mixins, the icon, and the absence of removed feature resources or raw world data.
+Use JDK 25 and the checked-in Gradle wrapper. `test` runs JUnit; `release` depends on `build` and verifies the single player-facing JAR in `build/release`, including its versioned metadata, required resources and forbidden legacy entries.
+
+For a completed change batch, run `bumpPatch`, fill in `CHANGELOG.md` and bundled `release_notes.txt`, then run `release`. Retrying a failed build does not require another version bump. See the [code guide](CODE_GUIDE.md#building-and-checking-a-change) for commands.

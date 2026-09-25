@@ -13,6 +13,8 @@ public enum InventoryButtonPosition {
     public final Side side;public final int index;
     InventoryButtonPosition(Side side,int index){this.side=side;this.index=index;}
 
+    // Positions are relative to the current container, not fixed screen pixels.
+    // Omit controls that cannot fit fully on screen rather than clipping their hitbox.
     public Optional<Rect> rectangle(int guiLeft,int guiTop,int guiWidth,int guiHeight,int screenWidth,int screenHeight,double scale){
         int size=Math.max(15,(int)Math.round(20*scale)),gap=2,pitch=size+gap,count=8;
         int x,y;

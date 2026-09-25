@@ -4,5 +4,6 @@ package name.skyveil.client.hunting;
 final class AttributeMenuLifecycle {
     private AttributeMenuLifecycle(){}
     static boolean shouldReset(boolean attributeMenuCurrentlyOpen){return !attributeMenuCurrentlyOpen;}
+    // Paging replaces Screen objects; that is not the same as leaving the menu.
     static boolean preserveOnScreenReplacement(){return true;}
 }

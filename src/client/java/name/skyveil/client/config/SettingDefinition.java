@@ -2,6 +2,11 @@ package name.skyveil.client.config;
 
 import java.util.function.*;
 
+/**
+ * Binds a registry key and UI control to the live configuration model.
+ * Keys also act as navigation targets for HUD right-clicks; renaming one requires
+ * updating those references. set() persists edits through ConfigManager.
+ */
 public final class SettingDefinition {
     public enum Type { TOGGLE, DECIMAL_SLIDER, COLOR, BUTTON, KEYBIND, CHORD, CHOICE }
     public final String key, name, description, tooltip, buttonLabel;
@@ -38,5 +43,6 @@ public final class SettingDefinition {
     public static SettingDefinition choice(String key,String name,String description,java.util.List<String> choices,Supplier<String> get,Consumer<String> set){
         return new SettingDefinition(key,name,description,description,Type.CHOICE,0,0,()->get.get(),v->set.accept((String)v),null,java.util.List.copyOf(choices));
     }
+    // Central edit path: apply to the live model, then validate/snapshot for persistence.
     public void set(Object value) { setter.accept(value); ConfigManager.save(); }
 }

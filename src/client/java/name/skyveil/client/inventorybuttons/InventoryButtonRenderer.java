@@ -16,6 +16,8 @@ import java.util.ArrayList;
 /** Draws and handles only the controls outside the vanilla container bounds. */
 public final class InventoryButtonRenderer {
     private InventoryButtonRenderer() {}
+    // Terminals and the storage workspace own their surrounding controls; avoid
+    // placing a second command-button layer over those specialized screens.
     public static boolean applies(Screen screen){
         if(DungeonTerminalDetector.matches(screen))return false;
         if(screen instanceof AbstractContainerScreen<?> container&&StoragePreviewManager.isActive(container))return false;
@@ -41,6 +43,7 @@ public final class InventoryButtonRenderer {
         }
     }
 
+    // Reuse the drawing geometry for hit testing; return true only for handled input.
     public static boolean mouseClicked(Screen screen,int guiLeft,int guiTop,int guiWidth,int guiHeight,MouseButtonEvent event){
         var config=ConfigManager.get().inventoryButtons;if(!applies(screen)||event.button()!=0&&event.button()!=1)return false;
         Minecraft client=Minecraft.getInstance();int screenWidth=client.getWindow().getGuiScaledWidth(),screenHeight=client.getWindow().getGuiScaledHeight();

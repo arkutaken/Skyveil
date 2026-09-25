@@ -15,6 +15,8 @@ public final class CompactDamageRenderer {
     private static boolean registered;
     private CompactDamageRenderer(){}
     public static void register(){if(registered)return;registered=true;LevelRenderEvents.COLLECT_SUBMITS.register(CompactDamageRenderer::render);}
+    // Resolve the target's live position each frame so the aggregate label follows
+    // movement; the batch stores identity and damage, not a stale world position.
     private static void render(LevelRenderContext context){
         if(!SkyblockSession.isActive())return;var camera=context.levelState().cameraRenderState;if(camera==null||camera.pos==null)return;Minecraft client=Minecraft.getInstance();if(client.level==null)return;
         for(DamageBatcher.Display display:CompactDamageManager.displays()){
@@ -28,7 +30,7 @@ public final class CompactDamageRenderer {
     static Component label(DamageBatcher.Display display,String style){
         String damage=DamageTextParser.format(display.average()),progress=" ["+display.hits()+"/"+DamageBatcher.MAX_HITS+"]";
         return switch(style==null?"MINIMAL":style){
-            case "NEON"->Component.literal("\u2726 ").withStyle(ChatFormatting.AQUA,ChatFormatting.BOLD).append(Component.literal(damage).withStyle(ChatFormatting.LIGHT_PURPLE,ChatFormatting.BOLD)).append(Component.literal(" \u2726"+progress).withStyle(ChatFormatting.AQUA));
+            case "NEON"->Component.literal("\u2726 ").withStyle(ChatFormatting.AQUA,ChatFormatting.BOLD).append(Component.literal(damage).withStyle(ChatFormatting.GOLD,ChatFormatting.BOLD)).append(Component.literal(" \u2726"+progress).withStyle(ChatFormatting.AQUA));
             case "CRIMSON"->Component.literal("\u2694 ").withStyle(ChatFormatting.DARK_RED,ChatFormatting.BOLD).append(Component.literal(damage).withStyle(ChatFormatting.RED,ChatFormatting.BOLD)).append(Component.literal(progress).withStyle(ChatFormatting.GOLD));
             default->Component.literal(damage).withStyle(ChatFormatting.WHITE);
         };

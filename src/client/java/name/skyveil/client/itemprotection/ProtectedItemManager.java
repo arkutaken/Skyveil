@@ -39,6 +39,7 @@ public final class ProtectedItemManager {
         ConfigManager.save();
         ItemProtectionManager.chat(added?"Item protected!":"Item not protected!");
     }
+    // Vanilla uses slot -999 for an outside click that drops the carried stack.
     public static boolean drops(ContainerInput input,int slot){
         return input==ContainerInput.THROW||input==ContainerInput.PICKUP&&slot==-999;
     }

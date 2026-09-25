@@ -21,6 +21,7 @@ import java.util.function.Supplier;
 
 /** Searchable, cached picker that uses Minecraft's real item renderer. */
 public final class InventoryButtonIconPickerScreen extends Screen {
+    // Share catalog entries between picker visits; each screen owns its filtered view.
     private static volatile List<IconEntry> cachedVanillaIcons,cachedHeadIcons;
     private final Screen parent;
     private final Consumer<String> selection;
@@ -54,6 +55,7 @@ public final class InventoryButtonIconPickerScreen extends Screen {
     private void setSource(Source next){source=next;search.setHint(Component.literal(source==Source.VANILLA?"Search Minecraft items":"Search SkyBlock heads and NPCs"));updateSourceButtons();filter();}
     private void updateSourceButtons(){if(vanillaButton!=null)vanillaButton.active=source!=Source.VANILLA;if(headsButton!=null)headsButton.active=source!=Source.SKYBLOCK_HEADS;}
 
+    // A new query changes row positions; restart scrolling at the first match.
     private void filter() {
         String query = search == null ? "" : search.getValue().trim().toLowerCase(Locale.ROOT);
         filtered = icons().stream().filter(icon -> query.isBlank() || icon.searchText.contains(query)).toList();

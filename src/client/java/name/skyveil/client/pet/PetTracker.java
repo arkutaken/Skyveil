@@ -93,6 +93,8 @@ public final class PetTracker {
 
     private PetTracker() {}
 
+    // Reconcile connection/account ownership before consuming widget or menu data.
+    // TAB supplies live selection; menus enrich details and may arrive in packets.
     public static void tick(Minecraft client) {
         Object liveConnection=client.getConnection();
         if(liveConnection!=connection)handleConnectionChange(client,liveConnection);
@@ -163,6 +165,8 @@ public final class PetTracker {
     public static void shutdown(Minecraft client){flushToCache(client);}
     public static void disconnect(Minecraft client){flushToCache(client);loadedAccount=null;persistenceDirty=false;clearLogicalSession();}
 
+    // Flush the old account before switching cache scope. A loaded cache is required
+    // so startup cannot overwrite saved pet data with an empty early observation.
     private static void ensureAccount(Minecraft client) {
         if(client==null||client.player==null||client.level==null||!SkyveilCacheManager.isLoaded())return;
         String account=client.player.getUUID().toString();

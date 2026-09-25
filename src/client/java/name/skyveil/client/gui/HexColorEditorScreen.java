@@ -2,7 +2,6 @@ package name.skyveil.client.gui;
 
 import name.skyveil.client.config.SettingDefinition;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -32,6 +31,8 @@ public final class HexColorEditorScreen extends Screen {
     }
 
     private void updatePreview(String input){Integer parsed=parse(input);if(parsed==null){error="Use six hex digits, for example #55FFFF";return;}preview=parsed;error="";}
+    // Six user-entered RGB digits become opaque ARGB. Partial/invalid input stays
+    // an error in the editor rather than changing the saved setting.
     static Integer parse(String input){
         String text=input==null?"":input.trim();if(text.startsWith("#"))text=text.substring(1);if(text.length()!=6)return null;
         try{return 0xFF000000|Integer.parseInt(text,16);}catch(NumberFormatException ignored){return null;}

@@ -21,6 +21,8 @@ public final class HudOcclusion {
         int r=Math.min(area.right,cover.right),b=Math.min(area.bottom,cover.bottom);
         if(l>=r||t>=b)return List.of(area);
         List<Rect> result=new ArrayList<>();
+        // Top/bottom strips span the full width; side strips use only the middle
+        // band. This partitions the remainder without drawing overlap twice.
         if(area.top<t)result.add(new Rect(area.left,area.top,area.right,t));
         if(b<area.bottom)result.add(new Rect(area.left,b,area.right,area.bottom));
         if(area.left<l)result.add(new Rect(area.left,t,l,b));

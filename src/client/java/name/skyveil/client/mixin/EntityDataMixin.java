@@ -12,6 +12,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 /** Re-evaluates Armor Stands when delayed custom-name metadata arrives. */
 @Mixin(Entity.class)
 public abstract class EntityDataMixin {
+    // Spawn may precede the name metadata. Retry classification after the new
+    // data is applied; the manager deduplicates already-accepted splashes.
     @Inject(method="onSyncedDataUpdated(Lnet/minecraft/network/syncher/EntityDataAccessor;)V",at=@At("TAIL"))
     private void skyveil$trackDamageMetadata(EntityDataAccessor<?> accessor,CallbackInfo ci){if(SkyblockSession.isActive())CompactDamageManager.onEntityAddedOrUpdated((Entity)(Object)this);}
 }

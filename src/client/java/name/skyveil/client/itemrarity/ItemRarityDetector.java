@@ -15,6 +15,8 @@ import java.util.regex.Pattern;
 /** Reads only the canonical rarity footer shown in an item's tooltip. */
 public final class ItemRarityDetector {
     private static final Pattern RARITY_WORD=Pattern.compile("(?:^| )(VERY SPECIAL|COMMON|UNCOMMON|RARE|EPIC|LEGENDARY|LEGENJERRY|MYTHIC|DIVINE|SPECIAL|SUPREME|ULTIMATE|ADMIN)(?= |$)");
+    // Weak keys allow discarded stacks to be collected; component fingerprints
+    // detect lore changes on stacks that retain the same Java identity.
     private static final Map<ItemStack,CacheEntry> CACHE=Collections.synchronizedMap(new WeakHashMap<>());
 
     private ItemRarityDetector() {}

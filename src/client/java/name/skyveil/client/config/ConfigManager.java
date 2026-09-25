@@ -3,7 +3,6 @@ package name.skyveil.client.config;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.fabricmc.loader.api.FabricLoader;
 import org.slf4j.Logger;
@@ -19,6 +18,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Loads, migrates, and validates user preferences. The mutable model is used by
+ * client UI code; save snapshots it before queuing serialized disk writes.
+ * Runtime observations belong in SkyveilCacheManager, not in this settings file.
+ */
 public final class ConfigManager {
     private static final Logger LOGGER = LoggerFactory.getLogger("skyveil-config");
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
@@ -55,6 +59,8 @@ public final class ConfigManager {
 
     private static boolean needsMigration() {
         return config.darkMode==null || config.storagePreviewTheme==null || "DARKISH_PURPLE".equals(config.darkMode) || "Darkish Purple".equals(config.darkMode)
+            || "DARK_PURPLE".equals(config.darkMode) || "DARK_PURPLE".equals(config.storagePreviewTheme)
+            || config.inventoryPreview!=null&&!"DARK".equals(config.inventoryPreview.backgroundColor)
             || config.zoom == null || config.bestiary == null || config.hunting == null
             || config.itemProtection == null || config.itemProtection.slotLinks == null || config.itemRarity == null || config.inventoryButtons == null
             || config.customKeybinds == null || config.chatCopy == null || config.wardrobe == null || config.inventoryPreview == null || config.skillXp == null || config.commissions == null || config.crystalHollowsMap == null || config.corpseWaypoints == null || config.pickaxeAbility == null || config.playerStats == null || config.performance == null || config.petDisplay == null || config.voidgloom == null || config.lockedInventorySlots == null
@@ -62,9 +68,10 @@ public final class ConfigManager {
     }
 
     private static void validate() {
-        if("DARKISH_PURPLE".equals(config.darkMode)||"Darkish Purple".equals(config.darkMode))config.darkMode="DARK_PURPLE";
-        if(!"DEFAULT".equals(config.darkMode)&&!"DARK".equals(config.darkMode)&&!"DARK_PURPLE".equals(config.darkMode))config.darkMode="DEFAULT";
-        if(!"DEFAULT".equals(config.storagePreviewTheme)&&!"DARK".equals(config.storagePreviewTheme)&&!"DARK_PURPLE".equals(config.storagePreviewTheme))config.storagePreviewTheme="DARK_PURPLE";
+        // Retired purple choices retain dark-mode intent without keeping a purple palette.
+        if("DARKISH_PURPLE".equals(config.darkMode)||"Darkish Purple".equals(config.darkMode)||"DARK_PURPLE".equals(config.darkMode))config.darkMode="DARK";
+        if(!"DEFAULT".equals(config.darkMode)&&!"DARK".equals(config.darkMode))config.darkMode="DEFAULT";
+        if(!"DEFAULT".equals(config.storagePreviewTheme)&&!"DARK".equals(config.storagePreviewTheme) )config.storagePreviewTheme="DARK";
         if(!"NEON".equals(config.compactDamageStyle)&&!"CRIMSON".equals(config.compactDamageStyle)&&!"MINIMAL".equals(config.compactDamageStyle))config.compactDamageStyle="MINIMAL";
         if (config.zoom == null) config.zoom = new SkyveilConfig.Zoom();
         if (config.bestiary == null) config.bestiary = new SkyveilConfig.Bestiary();
@@ -83,7 +90,7 @@ public final class ConfigManager {
         if (config.wardrobe == null) config.wardrobe = new SkyveilConfig.Wardrobe();
         if(config.inventoryPreview==null)config.inventoryPreview=new SkyveilConfig.InventoryPreview();
         config.inventoryPreview.backgroundOpacity=Double.isFinite(config.inventoryPreview.backgroundOpacity)?Math.max(0,Math.min(1,config.inventoryPreview.backgroundOpacity)):.4;
-        if(!"DARK".equals(config.inventoryPreview.backgroundColor))config.inventoryPreview.backgroundColor="PURPLE";
+        config.inventoryPreview.backgroundColor="DARK";
         config.inventoryPreview.hudX=Math.max(-1,config.inventoryPreview.hudX);config.inventoryPreview.hudY=Math.max(-1,config.inventoryPreview.hudY);
         config.inventoryPreview.scale=Double.isFinite(config.inventoryPreview.scale)?Math.max(.25,Math.min(2,config.inventoryPreview.scale)):1;
         if(config.crystalHollowsMap==null)config.crystalHollowsMap=new SkyveilConfig.CrystalHollowsMap();
@@ -171,49 +178,11 @@ public final class ConfigManager {
         return "RARITY".equals(value)||"QUANTITY".equals(value)||"PRICE".equals(value)?value:"RARITY";
     }
 
-    /** Converts legacy JSON shapes before Gson binds them to the current strongly typed model. */
-    static boolean migrateLegacyTree(JsonElement tree){
-        if(tree==null||!tree.isJsonObject())return false;
-        boolean changed=false;JsonObject root=tree.getAsJsonObject();
-        for(String key:new String[]{"trophyFishing","bobberTimer","baitSack","fishingNavigation","seaCreatures","itemPrices","trophyDiamondCaught","trophyTierCounts","trophyTotalCounts","map"})
-            if(root.remove(key)!=null)changed=true;
-        JsonElement protectionElement=root.get("itemProtection");
-        if(protectionElement!=null&&protectionElement.isJsonObject()){
-            JsonElement linksElement=protectionElement.getAsJsonObject().get("slotLinks");
-            if(linksElement!=null&&linksElement.isJsonObject())for(var entry:linksElement.getAsJsonObject().entrySet())
-                if(entry.getValue()!=null&&entry.getValue().isJsonPrimitive()){
-                    com.google.gson.JsonArray destinations=new com.google.gson.JsonArray();destinations.add(entry.getValue());entry.setValue(destinations);changed=true;
-                }
-        }
-        JsonElement rarityElement=root.get("itemRarity");
-        if(rarityElement!=null&&rarityElement.isJsonObject()){
-            JsonObject rarity=rarityElement.getAsJsonObject();
-            String[] legacyFlags={"common","uncommon","rare","epic","legendary","mythic","divine","special","verySpecial","supreme","ultimate","admin"};
-            if(!rarity.has("enabled")){
-                boolean enabled=false,found=false;
-                for(String flag:legacyFlags)if(rarity.has(flag)&&rarity.get(flag).isJsonPrimitive()){
-                    found=true;try{enabled|=rarity.get(flag).getAsBoolean();}catch(Exception ignored){}
-                }
-                rarity.addProperty("enabled",!found||enabled);changed=true;
-            }
-            String[] dead={"style","opacity","outlineOpacity","outlineThickness","common","uncommon","rare","epic","legendary","mythic","divine","special","verySpecial","supreme","ultimate","admin"};
-            for(String key:dead)if(rarity.remove(key)!=null)changed=true;
-        }
-        JsonElement chatCopyElement=root.get("chatCopy");
-        if(chatCopyElement!=null&&chatCopyElement.isJsonObject()){
-            JsonObject chatCopy=chatCopyElement.getAsJsonObject();JsonObject binding=null;JsonElement current=chatCopy.get("binding");if(current!=null&&current.isJsonObject())binding=current.getAsJsonObject();
-            JsonElement bindings=chatCopy.get("bindings");if(binding==null&&bindings!=null&&bindings.isJsonArray()&&!bindings.getAsJsonArray().isEmpty()&&bindings.getAsJsonArray().get(0).isJsonObject()){binding=bindings.getAsJsonArray().get(0).getAsJsonObject().deepCopy();chatCopy.add("binding",binding);changed=true;}
-            if(chatCopy.remove("bindings")!=null)changed=true;
-            if(binding!=null&&!binding.has("keys")){com.google.gson.JsonArray keys=new com.google.gson.JsonArray();
-                if(binding.has("control")&&binding.get("control").getAsBoolean())keys.add(org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT_CONTROL);
-                if(binding.has("shift")&&binding.get("shift").getAsBoolean())keys.add(org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT_SHIFT);
-                if(binding.has("alt")&&binding.get("alt").getAsBoolean())keys.add(org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT_ALT);
-                if(binding.has("heldKey")){int key=binding.get("heldKey").getAsInt();if(key!=org.lwjgl.glfw.GLFW.GLFW_KEY_UNKNOWN)keys.add(key);}binding.add("keys",keys);binding.remove("control");binding.remove("shift");binding.remove("alt");binding.remove("heldKey");changed=true;
-            }
-        }
-        return changed;
-    }
+    /** Keep legacy shape conversion separate from model validation and disk writes. */
+    static boolean migrateLegacyTree(JsonElement tree){return ConfigMigration.migrate(tree);}
 
+    // Capture serialized settings before scheduling I/O; the worker must not read
+    // the mutable model while the user is still editing controls.
     public static void save() {
         validate();
         String json=GSON.toJson(config);

@@ -10,6 +10,8 @@ import java.util.regex.Pattern;
 public final class AttributeSyphonChatTracker {
     private static final Pattern START=Pattern.compile("(?i)^You used Syphon on (?:(?:([\\d,]+) Shards?)|(?:.+? Shard))!$");
     private static final Pattern RESULT=Pattern.compile("(?i)^\\+([\\d,]+) (.+?) Attribute \\(Level (\\d+)\\)(?: - ([\\d,]+) more to upgrade!| MAXED)$");
+    // A start line opens a short result window. Remaining quantity bounds how
+    // many result lines can update progress before the operation is finished.
     private static final long RESULT_WINDOW_MS=4_000;
     private static long deadline;
     private static long remaining;

@@ -11,6 +11,8 @@ import java.util.Set;
 final class DamageSourceClassifier {
     private DamageSourceClassifier(){}
 
+    // Only colored numeric fragments are evidence; decorative text beside a number
+    // must not change the inferred damage source.
     static DamageSource styledSource(Component component) {
         Set<Integer> colors=new HashSet<>();
         if(component!=null)for(Component part:component.toFlatList())if(part.getString().chars().anyMatch(Character::isDigit)&&part.getStyle().getColor()!=null)colors.add(part.getStyle().getColor().getValue()&0xFFFFFF);

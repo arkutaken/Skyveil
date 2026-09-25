@@ -31,6 +31,8 @@ public abstract class InventoryScreenMixin {
         ContainerDarkModeRenderer.render(graphics,screen.skyveil$getLeftPos(),screen.skyveil$getTopPos(),screen.skyveil$getImageWidth(),screen.skyveil$getImageHeight());
     }
 
+    // Inventory-specific layers render after the base container; submit our
+    // surrounding controls last so potion/recipe layers cannot cover them.
     @Inject(method="extractRenderState",at=@At("TAIL"))
     private void skyveil$drawInventoryButtonsLast(GuiGraphicsExtractor graphics,int mouseX,int mouseY,float partialTick,CallbackInfo ci){
         if(!SkyblockSession.isActive())return;

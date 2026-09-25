@@ -2,6 +2,8 @@ package name.skyveil.client.performance;
 
 /** Times our own ping/pong exchanges; never trusts the server's TAB latency field. */
 public final class PingMeasurement {
+    // Reserve a recognizable high-bit prefix for our probes. Sequence numbers
+    // distinguish replies, while nanoTime values measure elapsed round-trip time.
     private static final long PREFIX=0x53564C5000000000L;
     private long sequence,pending,sentAt,lastSent,lastReply;
     private int milliseconds=-1;

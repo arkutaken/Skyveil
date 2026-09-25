@@ -13,6 +13,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 /** Marks real player attack actions so secondary damage ticks cannot consume melee hits. */
 @Mixin(MultiPlayerGameMode.class)
 public abstract class MultiPlayerGameModeMixin {
+    // Check the outgoing action against the current menu. Outside-drop clicks
+    // refer to the carried stack, while regular drops refer to a menu slot.
     @Inject(method="handleContainerInput",at=@At("HEAD"),cancellable=true)
     private void skyveil$protectItemDrop(int containerId,int slotId,int button,net.minecraft.world.inventory.ContainerInput input,Player player,CallbackInfo ci){
         if(!SkyblockSession.isActive()||!name.skyveil.client.itemprotection.ProtectedItemManager.drops(input,slotId))return;

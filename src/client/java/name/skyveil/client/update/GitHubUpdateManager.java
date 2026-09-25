@@ -104,22 +104,38 @@ public final class GitHubUpdateManager {
     private static void downloadAsync(Minecraft client,ReleaseInfo release){
         if(!DOWNLOADING.compareAndSet(false,true))return;chat(client,"Downloading Skyveil "+release.version()+"…",ChatFormatting.YELLOW);
         Thread.startVirtualThread(()->{
+            Path temporary=null;
             try{
-                Path temporary=download(release);verifyJar(temporary,release);install(temporary,release.asset().name());installedForRestart=true;
+                temporary=download(release);verifyJar(temporary,release);install(temporary,release.asset().name());installedForRestart=true;
                 Minecraft.getInstance().execute(()->chat(Minecraft.getInstance(),"Skyveil "+release.version()+" installed. Restart Minecraft to finish the update.",ChatFormatting.GREEN));
             }catch(Exception exception){LOGGER.error("Could not install Skyveil {}",release.version(),exception);chatLater("Update failed validation or installation; the current JAR was kept.",ChatFormatting.RED);}
-            finally{DOWNLOADING.set(false);}
+            finally{deleteTemporary(temporary);DOWNLOADING.set(false);}
         });
     }
 
+    /** Clean partial or rejected downloads without hiding the original failure. */
+    static void deleteTemporary(Path path){
+        if(path==null)return;
+        try{Files.deleteIfExists(path);}
+        catch(java.io.IOException failure){LOGGER.warn("Could not remove temporary update {}",path,failure);}
+    }
     private static Path download(ReleaseInfo release)throws Exception{
         Path directory=FabricLoader.getInstance().getConfigDir().resolve("skyveil").resolve("updates");Files.createDirectories(directory);
         Path temporary=directory.resolve(release.asset().name()+".download");Files.deleteIfExists(temporary);
         HttpRequest request=HttpRequest.newBuilder(release.asset().download()).timeout(Duration.ofMinutes(2)).header("Accept","application/octet-stream").header("User-Agent","Skyveil/"+CURRENT_VERSION+" updater").GET().build();
-        HttpResponse<Path> response=HTTP.send(request,HttpResponse.BodyHandlers.ofFile(temporary));if(response.statusCode()!=200)throw new IllegalStateException("download returned HTTP "+response.statusCode());
-        if(Files.size(temporary)!=release.asset().size())throw new IllegalStateException("download size does not match GitHub metadata");return temporary;
+        // A failed HTTP/size check never returns its path to the caller, so clean it here.
+        boolean complete=false;
+        try{
+            HttpResponse<Path> response=HTTP.send(request,HttpResponse.BodyHandlers.ofFile(temporary));
+            if(response.statusCode()!=200)throw new IllegalStateException("download returned HTTP "+response.statusCode());
+            if(Files.size(temporary)!=release.asset().size())throw new IllegalStateException("download size does not match GitHub metadata");
+            complete=true;
+            return temporary;
+        }finally{if(!complete)deleteTemporary(temporary);}
     }
 
+    // Verify both the release-provided digest and the mod's embedded identity/version
+    // before installation. A matching filename alone does not identify a valid update.
     private static void verifyJar(Path path,ReleaseInfo release)throws Exception{
         MessageDigest digest=MessageDigest.getInstance("SHA-256");try(InputStream input=Files.newInputStream(path);DigestInputStream checked=new DigestInputStream(input,digest)){byte[] buffer=new byte[16_384];while(checked.read(buffer)>=0){/* digest while streaming */}}
         String actual=HexFormat.of().formatHex(digest.digest());if(!actual.equalsIgnoreCase(release.asset().sha256()))throw new IllegalStateException("download SHA-256 does not match GitHub metadata");
@@ -139,6 +155,8 @@ public final class GitHubUpdateManager {
         if(directory==null||!Files.isDirectory(directory))throw new IllegalStateException("the installed mod directory is unavailable");
         Path target=directory.resolve(assetName),disabled=directory.resolve(current.getFileName()+".replaced-"+System.currentTimeMillis());
         if(!target.equals(current)&&Files.exists(target))throw new IllegalStateException("another "+assetName+" already exists in the mods folder");
+        // Stage the old JAR outside the .jar suffix; restore it if placing the new
+        // file fails so the mods directory does not lose its working installation.
         move(current,disabled);boolean committed=false;
         try{move(downloaded,target);committed=true;}finally{if(!committed)move(disabled,current);}
         try{Files.deleteIfExists(disabled);}catch(Exception locked){disabled.toFile().deleteOnExit();LOGGER.info("Old Skyveil JAR will be removed when Java exits: {}",disabled);}
@@ -152,14 +170,14 @@ public final class GitHubUpdateManager {
 
     private static void showAvailable(Minecraft client,ReleaseInfo release){
         if(client.player==null||release==null)return;
-        client.player.sendSystemMessage(Component.literal("[Skyveil] ").withStyle(ChatFormatting.LIGHT_PURPLE).append(Component.literal("Update "+release.version()+" is available").withStyle(ChatFormatting.GOLD)));
+        client.player.sendSystemMessage(Component.literal("[Skyveil] ").withStyle(ChatFormatting.GOLD).append(Component.literal("Update "+release.version()+" is available").withStyle(ChatFormatting.GOLD)));
         for(String note:release.notes())client.player.sendSystemMessage(Component.literal(" • "+note).withStyle(ChatFormatting.WHITE));
         client.player.sendSystemMessage(Component.literal("[Download and install]").withStyle(style->style.withColor(ChatFormatting.GREEN).withUnderlined(true)
             .withClickEvent(new ClickEvent.RunCommand("/sv update")).withHoverEvent(new HoverEvent.ShowText(Component.literal("Download, verify, and install Skyveil "+release.version()))))
             .append(Component.literal("  ")).append(Component.literal("[View release]").withStyle(style->style.withColor(ChatFormatting.AQUA).withUnderlined(true).withClickEvent(new ClickEvent.OpenUrl(release.page())))));
     }
     private static void chatLater(String message,ChatFormatting color){Minecraft.getInstance().execute(()->chat(Minecraft.getInstance(),message,color));}
-    private static void chat(Minecraft client,String message,ChatFormatting color){if(client.player!=null)client.player.sendSystemMessage(Component.literal("[Skyveil] ").withStyle(ChatFormatting.LIGHT_PURPLE).append(Component.literal(message).withStyle(color)));}
+    private static void chat(Minecraft client,String message,ChatFormatting color){if(client.player!=null)client.player.sendSystemMessage(Component.literal("[Skyveil] ").withStyle(ChatFormatting.GOLD).append(Component.literal(message).withStyle(color)));}
     private static URI validatedPage(String value){URI uri=URI.create(value);if(!"https".equalsIgnoreCase(uri.getScheme())||!"github.com".equalsIgnoreCase(uri.getHost())||!uri.getPath().startsWith("/arkutaken/Skyveil/releases/"))throw new IllegalArgumentException("release page URL is outside the Skyveil repository");return uri;}
     private static URI validatedDownload(String value){URI uri=URI.create(value);if(!"https".equalsIgnoreCase(uri.getScheme())||!"github.com".equalsIgnoreCase(uri.getHost())||!uri.getPath().startsWith(RELEASE_PATH_PREFIX))throw new IllegalArgumentException("asset URL is outside the Skyveil repository");return uri;}
     private static String normalizeVersion(String value){if(value==null)return null;String normalized=value.startsWith("v")?value.substring(1):value;return normalized.matches("\\d+\\.\\d+\\.\\d+")?normalized:null;}

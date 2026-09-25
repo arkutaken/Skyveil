@@ -11,6 +11,8 @@ enum PetDisplayStyle {
         catch(IllegalArgumentException ignored){return PANEL;}
     }
 
+    // Colors use ARGB: caller-supplied opacity belongs in the high byte, while
+    // rarity contributes only RGB to the minimal style's progress bar.
     Palette palette(int rarityRgb,int alpha) {
         int rarity=rarityRgb&0xFFFFFF;
         return switch(this) {

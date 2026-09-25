@@ -17,6 +17,8 @@ public final class HuntingShardPriceIdentity {
     private static final Catalog CATALOG=load();
     private HuntingShardPriceIdentity(){}
 
+    // Virtual Hunting Box IDs are not Bazaar product names. Translate via the
+    // bundled identity bridge, with a catalog display-name fallback.
     public static MarketIdentity resolve(ItemStack stack){
         if(stack==null||stack.isEmpty())return null;
         MarketIdentity byId=CATALOG.byKey().get(normalize(AttributeShardResolver.resolveInternalId(stack)));

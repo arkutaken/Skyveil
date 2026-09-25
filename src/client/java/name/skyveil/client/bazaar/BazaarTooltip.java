@@ -31,6 +31,8 @@ public final class BazaarTooltip {
         }
         return null;
     }
+    // A single-enchantment book maps to one Bazaar product. Mixed books cannot
+    // be valued as a single product and therefore return an empty key.
     public static String product(CompoundTag data){
         var extra=attributes(data);
         String id=extra.getStringOr("id","");
@@ -47,19 +49,27 @@ public final class BazaarTooltip {
         };
     }
     public static List<Component> decorate(ItemStack stack,List<Component> lines){
+        // Decoration may run repeatedly on a cached tooltip; replace our previous rows.
+        lines=name.skyveil.client.auction.AuctionTooltip.removePriceLines(lines,"Insta Buy: ","Insta Sell: ");
         if(stack==null||stack.isEmpty())return lines;
         var custom=stack.get(DataComponents.CUSTOM_DATA);
         if(custom==null)return lines;
-        if(name.skyveil.client.craftcost.CraftCostTooltip.isInherentlySoulbound(attributes(custom.copyTag()).getStringOr("id","")))
+        // Copy NBT once per decoration; all identity checks use the same snapshot.
+        var data=custom.copyTag();
+        var extra=attributes(data);
+        // Keep minion pricing limited to replacement ingredients on every tooltip path.
+        if(name.skyveil.client.auction.AuctionTooltip.isMinion(extra.getStringOr("id","")))
+            return name.skyveil.client.auction.AuctionTooltip.craftCostOnly(lines);
+        if(name.skyveil.client.craftcost.CraftCostTooltip.isInherentlySoulbound(extra.getStringOr("id","")))
             return name.skyveil.client.auction.AuctionTooltip.removePriceLines(lines,"Insta Buy: ","Insta Sell: ");
-        String id=product(custom.copyTag());
+        String id=product(data);
         var shard=name.skyveil.client.hunting.HuntingShardPriceIdentity.resolve(stack);
         if(shard!=null)id=shard.bazaarName();
         if(id.isBlank())return lines;
         var quote=BazaarPrices.quote(id);
         if(quote==null)return lines;
         var result=new ArrayList<>(lines);
-        result.add(Component.empty());
+        if(result.isEmpty()||!result.getLast().getString().isBlank())result.add(Component.empty());
         result.add(priceLine("Insta Buy",quote.buy(),stack.getCount(),0xFFAA00));
         result.add(priceLine("Insta Sell",quote.sell(),stack.getCount(),0x55FF55));
         return result;

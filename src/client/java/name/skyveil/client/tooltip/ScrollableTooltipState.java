@@ -22,6 +22,8 @@ public final class ScrollableTooltipState {
         observe(displayed,Minecraft.getInstance().screen,-1,-1);
     }
 
+    // Item content alone is not the hover identity: identical stacks in another
+    // slot or container should start at the top rather than inherit old scrolling.
     public static void observe(ItemStack displayed,Screen current,int hoveredSlot,int containerId){
         if(!ConfigManager.get().scrollableTooltips||displayed==null||displayed.isEmpty()){reset();return;}
         int hash=ItemStack.hashItemAndComponents(displayed);

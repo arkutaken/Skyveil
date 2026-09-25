@@ -29,4 +29,12 @@ final class GitHubUpdateManagerTest {
              "assets":[{"name":"Skyveil-9.0.0.jar","size":100,"digest":"sha256:%s","browser_download_url":"https://evil.example/Skyveil-9.0.0.jar"}]}
             """.formatted(DIGEST)).getAsJsonObject()));
     }
-}
+    @org.junit.jupiter.api.Test void temporaryDownloadCleanupIsSafeToRepeat(@org.junit.jupiter.api.io.TempDir java.nio.file.Path directory)throws Exception{
+        // Cleanup runs both on rejected downloads and after a successful move.
+        var partial=directory.resolve("Skyveil.jar.download");
+        java.nio.file.Files.writeString(partial,"incomplete");
+        GitHubUpdateManager.deleteTemporary(partial);
+        org.junit.jupiter.api.Assertions.assertFalse(java.nio.file.Files.exists(partial));
+        GitHubUpdateManager.deleteTemporary(partial);
+        GitHubUpdateManager.deleteTemporary(null);
+    }}

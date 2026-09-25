@@ -29,8 +29,22 @@ public final class AuctionTooltip {
     }
     public static List<Component> removePriceLines(List<Component> lines,String... prefixes){
         var result=new ArrayList<>(lines);
-        result.removeIf(line->Arrays.stream(prefixes).anyMatch(line.getString()::startsWith));
+        // Remove each price row's separator too; repeated refreshes must not grow the tooltip.
+        for(int index=result.size()-1;index>=0;index--){
+            String text=result.get(index).getString();
+            if(Arrays.stream(prefixes).noneMatch(text::startsWith))continue;
+            result.remove(index);
+            if(index>0&&result.get(index-1).getString().isBlank())result.remove(--index);
+        }
         return result.size()==lines.size()?lines:result;
+    }
+    /** Minion tiers are identified by their server ID, never by an editable name. */
+    public static boolean isMinion(String id){
+        return id!=null&&id.trim().toUpperCase(Locale.ROOT).matches("[A-Z0-9_]+_GENERATOR_[1-9][0-9]*");
+    }
+    /** Remove cached market rows too, while preserving the separate craft-cost row. */
+    public static List<Component> craftCostOnly(List<Component> lines){
+        return removePriceLines(lines,"Lowest BIN: ","Active BIN average: ","3-day average: ","Insta Buy: ","Insta Sell: ");
     }
     static boolean soulbound(List<Component> lines){
         return lines.stream().map(line->line.getString().replaceAll("\u00a7.","").trim())
@@ -55,11 +69,15 @@ public final class AuctionTooltip {
         if(!history.complete())line=line.copy().append(Component.literal(" (collecting history)").withColor(0xAAAAAA));
         return line;
     }
+    // Tooltip paths can reuse cached rows. Remove obsolete price lines before
+    // applying current identity/market rules, especially for inherently bound items.
     public static List<Component> decorate(ItemStack stack,List<Component> lines){
         lines=removePriceLines(lines,"Active BIN average: ");
         if(stack==null||stack.isEmpty())return lines;
         var custom=stack.get(DataComponents.CUSTOM_DATA);if(custom==null)return lines;
         var data=custom.copyTag();var extra=BazaarTooltip.attributes(data);
+        // Minions have no comparable auction row; do not start a market request for one.
+        if(isMinion(extra.getStringOr("id","")))return craftCostOnly(lines);
         if(name.skyveil.client.craftcost.CraftCostTooltip.isInherentlySoulbound(extra.getStringOr("id","")))
             return removePriceLines(lines,"Lowest BIN: ","Active BIN average: ","3-day average: ");
         String bazaar=BazaarTooltip.product(data);

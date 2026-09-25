@@ -12,6 +12,7 @@ import java.util.WeakHashMap;
 
 /** Draws a pet's parsed level in the bottom-right corner of supported menu icons. */
 public final class PetMenuLevelOverlayRenderer {
+    // Weak keys avoid retaining old menu stacks solely for their parsed levels.
     private static final Map<ItemStack,Integer> LEVEL_CACHE=new WeakHashMap<>();
     private static AbstractContainerScreen<?> cachedScreen;
     private static String cachedTitle="";

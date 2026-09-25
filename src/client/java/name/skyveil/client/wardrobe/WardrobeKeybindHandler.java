@@ -24,6 +24,8 @@ public final class WardrobeKeybindHandler {
         int number=wardrobeNumber(event.key());
         if(number<1||!ConfigManager.get().wardrobe.numberKeys||!WardrobeMenuDetector.matches(screen))return false;
         if(screen.getFocused() instanceof EditBox field&&field.isFocused())return false;
+        // Consume repeats without sending another click or allowing vanilla's
+        // number-key hotbar swap to act on the hovered wardrobe item.
         if(!HELD_KEYS.add(event.key())){lastAction="key="+number+" detected=true repeated=true hoveredSlot=ignored vanillaInputCancelled=true clickSent=false";return true;}
         WardrobeSlotResolver.Resolution resolution=WardrobeSlotResolver.resolve(screen);
         WardrobeSlotResolver.ResolvedSlot resolved=resolution.slots().get(number);

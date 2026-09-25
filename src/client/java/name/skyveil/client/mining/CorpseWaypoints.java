@@ -37,6 +37,8 @@ public final class CorpseWaypoints {
         if (++scanTicks < 5) return;
         scanTicks = 0;
         if (!inMiningArea(client)) { markers = List.of(); return; }
+        // Rebuild from currently loaded entities. This automatically drops markers
+        // for corpses that despawn or leave the client's loaded world.
         var next = new ArrayList<Marker>();
         for (var entity : world.entitiesForRendering()) {
             if (!(entity instanceof ArmorStand stand) || stand.isRemoved()) continue;

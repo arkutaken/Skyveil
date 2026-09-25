@@ -28,6 +28,7 @@ public final class AttributeMenuPanel {
     private static long cachedRevision=-1,cachedPriceRevision=-1;
     private static List<Row> rows=List.of();
     private static List<String> diagnosticEntries=List.of();
+    // Accumulate visited pages for the current filter; unseen pages are not empty pages.
     private static final Map<Integer,List<AttributeMenuParser.Parsed>> FILTER_PAGES=new HashMap<>();
     private static String filterKey="",filterLabel="";
     private static int filterTotalPages=1;
@@ -47,6 +48,8 @@ public final class AttributeMenuPanel {
         int available=Math.max(leftSpace,rightSpace);if(available<MIN_WIDTH){bounds=null;return;}
         int width=Math.min(PREFERRED_WIDTH,available),x=leftSpace>=rightSpace?guiLeft-SPACING-width:guiLeft+guiWidth+SPACING,y=guiTop,height=guiHeight;
         if(screen!=cachedScreen)beginScreen(screen);
+        // Packet updates may expose an intermediate menu. Wait for stable contents
+        // before rebuilding rows from what could otherwise be a partial page.
         if(dirty)stabilize(screen);
         int viewportTop=y+HEADER,viewportBottom=y+height-FOOTER,visible=Math.max(1,(viewportBottom-viewportTop)/ROW_HEIGHT),maxScroll=Math.max(0,rows.size()-visible);
         scroll=Math.max(0,Math.min(scroll,maxScroll));bounds=new Bounds(x,y,width,height,viewportTop,viewportBottom,visible,maxScroll);
@@ -65,7 +68,7 @@ public final class AttributeMenuPanel {
         if(rows.isEmpty())graphics.text(Minecraft.getInstance().font,complete?"No missing attributes":"No missing attributes observed yet",x+6,viewportTop+5,SkyveilTheme.SECONDARY,false);
         for(int index=0;index<visible&&scroll+index<rows.size();index++){
             Row row=rows.get(scroll+index);int rowY=viewportTop+index*ROW_HEIGHT;
-            graphics.fill(x+1,rowY,x+width-1,rowY+ROW_HEIGHT,(index&1)==0?0x302E243C:0x30372A49);graphics.item(row.stack(),x+3,rowY+2);
+            graphics.fill(x+1,rowY,x+width-1,rowY+ROW_HEIGHT,(index&1)==0?0x30282828:0x30383838);graphics.item(row.stack(),x+3,rowY+2);
             String quantity=row.quantityKnown()?row.needed()+" shards":"Unknown quantity";int quantityWidth=Minecraft.getInstance().font.width(quantity),quantityX=x+width-5-quantityWidth,nameWidth=Math.max(30,quantityX-(x+22)-4);
             var nameLine=Minecraft.getInstance().font.split(row.name(),nameWidth);
             graphics.text(Minecraft.getInstance().font,quantity,quantityX,rowY+3,0xFFAAAAAA,false);

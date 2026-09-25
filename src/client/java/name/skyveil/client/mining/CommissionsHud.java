@@ -10,6 +10,11 @@ import net.minecraft.client.multiplayer.PlayerInfo;
 import net.minecraft.world.level.GameType;
 import java.util.*;
 
+/**
+ * Polls commission widget rows on the client thread and draws the latest parse.
+ * Data remains world/connection-scoped. Hiding for TAB affects rendering only,
+ * so tracking continues while the player reads the expanded list.
+ */
 public final class CommissionsHud {
     public static final int WIDTH=220,HEIGHT=116;
     private static final Comparator<PlayerInfo> TAB_ORDER=Comparator
@@ -32,9 +37,12 @@ public final class CommissionsHud {
         if(world!=client.level||connection!=client.getConnection()){
             reset();world=client.level;connection=client.getConnection();
         }
+        // Widget text need not be reparsed every rendered frame; five client ticks
+        // keep updates responsive while bounding sorting/parsing work.
         if(ticks++%5!=0)return;
         commissions=CommissionParser.parse(widgetLines(client));
     }
+    // Preserve the displayed TAB order: section parsers rely on neighboring rows.
     static List<String> widgetLines(Minecraft client){
         var overlay=client.gui.getTabList();
         return client.getConnection().getListedOnlinePlayers().stream()

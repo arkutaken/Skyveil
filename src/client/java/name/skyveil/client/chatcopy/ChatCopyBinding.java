@@ -10,5 +10,6 @@ public final class ChatCopyBinding {
     public int mouseButton=GLFW.GLFW_MOUSE_BUTTON_MIDDLE;
     public List<Integer> keys=new ArrayList<>();
 
+    // Copy the key list as well as the binding so chord edits cannot leak into the original.
     public ChatCopyBinding copy(){ChatCopyBinding copy=new ChatCopyBinding();copy.mouseButton=mouseButton;copy.keys=keys==null?new ArrayList<>():new ArrayList<>(keys);return copy;}
 }

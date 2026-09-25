@@ -26,6 +26,8 @@ final class AttributeShardHeadCatalog {
     private static final Map<String,HeadProfile> HEADS=load();
     private AttributeShardHeadCatalog(){}
 
+    // Build a fresh stack from bundled texture data so callers can customize it
+    // without modifying the catalog or requiring an online profile lookup.
     static ItemStack head(String subtype){HeadProfile data=HEADS.get(normalize(subtype));if(data==null)return ItemStack.EMPTY;Property texture=new Property("textures",data.texture());PropertyMap properties=new PropertyMap(ImmutableMultimap.of("textures",texture));GameProfile profile=new GameProfile(data.uuid(),"SkyveilShard",properties);ItemStack head=new ItemStack(Items.PLAYER_HEAD);head.set(DataComponents.PROFILE,ResolvableProfile.createResolved(profile));return head;}
     static int size(){return HEADS.size();}
     static boolean has(String subtype){return HEADS.containsKey(normalize(subtype));}

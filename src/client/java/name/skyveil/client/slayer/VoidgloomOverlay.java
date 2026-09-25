@@ -50,6 +50,8 @@ public final class VoidgloomOverlay {
         var config=ConfigManager.get().voidgloom;if(!config.highlightLasers&&!config.highlightBeacon&&!config.highlightHeads){clear();return;}
         if(++scanDelay<2)return;scanDelay=0;
         ClientLevel level=client.level;Vec3 player=client.player.position();ArrayList<Entity> nearby=new ArrayList<>();
+        // Nearby players can have their own bosses. Require the player's quest
+        // evidence before choosing a boss and associating dangerous mechanics.
         if(!hasOwnVoidgloomQuest(level)){ownBossId=-1;clearMechanics();return;}
         for(Entity entity:level.entitiesForRendering())if(!entity.isRemoved()&&entity.position().distanceToSqr(player)<=96*96)nearby.add(entity);
 

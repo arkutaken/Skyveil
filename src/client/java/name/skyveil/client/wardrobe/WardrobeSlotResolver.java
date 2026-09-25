@@ -52,6 +52,8 @@ public final class WardrobeSlotResolver {
             ItemStack stack=slot.getItem();
             StringBuilder text=new StringBuilder(WardrobeMenuDetector.normalize(stack.getHoverName().getString()));
             for(Component line:Screen.getTooltipFromItem(client,stack))text.append('\n').append(WardrobeMenuDetector.normalize(line.getString()));
+            // Prefer an explicit server label, falling back to the page-relative
+            // layout only when no number is present. Locked selectors stay unusable.
             Integer displayedNumber=parseNumber(text.toString());
             int actualNumber=displayedNumber!=null?displayedNumber:page==null?position+1:(page.current()-1)*WardrobeMenuDetector.SELECTORS_PER_PAGE+position+1;
             boolean locked=stack.is(Items.RED_DYE)||LOCKED.matcher(text).find();

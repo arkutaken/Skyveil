@@ -10,6 +10,8 @@ enum CorpseType {
     CorpseType(String label, String helmet, int color) {
         this.label = label; this.helmet = helmet; this.color = color;
     }
+    // Helmet IDs are server item identities, not visible colors or display names.
+    // Unknown equipment is not enough evidence to label a corpse.
     static CorpseType fromHelmet(String id) {
         for (var type : values()) if (type.helmet.equals(id)) return type;
         return null;

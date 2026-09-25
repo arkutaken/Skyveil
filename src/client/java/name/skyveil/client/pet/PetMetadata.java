@@ -6,6 +6,8 @@ import name.skyveil.client.itemrarity.SkyblockRarity;
 
 /** Structured petInfo only: player-head profile UUIDs are never pet identities. */
 record PetMetadata(String type,String uuid,String heldItem,SkyblockRarity tier,double xp,boolean active){
+    // petInfo may be an object, a JSON-encoded string, or a field inside an outer
+    // object. Invalid metadata returns unknown fields rather than a guessed pet.
     static PetMetadata parse(String input){
         try{
             var value=parseJson(input==null?"{}":input);

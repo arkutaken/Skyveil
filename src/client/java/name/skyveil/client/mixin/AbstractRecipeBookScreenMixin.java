@@ -15,6 +15,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 /** Gives surrounding inventory controls priority over the recipe-book click handler. */
 @Mixin(AbstractRecipeBookScreen.class)
 public abstract class AbstractRecipeBookScreenMixin {
+    // The subclass recipe-book handler can consume clicks before the base container
+    // hook sees them, so surrounding inventory controls are checked here too.
     @Inject(method="mouseClicked",at=@At("HEAD"),cancellable=true)
     private void skyveil$clickInventoryButtonFirst(MouseButtonEvent event,boolean doubleClick,CallbackInfoReturnable<Boolean> cir){
         if(!SkyblockSession.isActive())return;

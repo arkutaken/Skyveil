@@ -21,6 +21,8 @@ public final class AttributeMenuParser {
         var identity=AttributeShardResolver.resolve(original);if(identity==null||"REPTILOID".equals(identity.structuredSubtype()))return null;
         ItemStack stack=original.copy();Component name=stack.getHoverName().copy();java.util.List<String> loreText=new java.util.ArrayList<>();
         var lore=stack.get(DataComponents.LORE);if(lore!=null)for(Component line:lore.lines())loreText.add(line.getString());
+        // The displayed tier and shards-to-next determine progress; ownership count
+        // affects the purchase remainder rather than the already-syphoned total.
         ProgressText text=parseProgressText(name.getString(),loreText);int tier=text.tier(),toNext=text.toNext();
         SkyblockRarity rarity=ItemRarityDetector.detect(stack);
         if(rarity==null)rarity=AttributeShardResolver.rarity(identity.structuredSubtype());

@@ -34,6 +34,8 @@ public final class CrystalHollowsMapHud {
             if(found==null&&entry.display()!=null)found=CrystalHollowsMap.location(entry.display().getString());
             if(found!=null){inHollows=true;location=found;break;}
         }
+        // TAB can confirm the broad area if sidebar data is absent, but only a
+        // recognized sidebar location supplies an entry transition for discoveries.
         if(!inHollows&&client.getConnection()!=null)
             inHollows=CommissionsHud.widgetLines(client).stream().anyMatch(CrystalHollowsMap::isLocation);
         if(inHollows){
@@ -91,8 +93,8 @@ public final class CrystalHollowsMapHud {
             text(g,"Precursor",LEFT+middle+5,TOP+SIZE-25,0xFFFFFFFF);
             text(g,"Remnants",LEFT+middle+5,TOP+SIZE-15,0xFFFFFFFF);
             int n=point(450),end=point(560);
-            fill(g,LEFT+n,TOP+n,LEFT+end,TOP+end,0xFF885E94);
-            text(g,"N",LEFT+point(505)-2,TOP+point(505)-4,0xFFFFDDFF);
+            fill(g,LEFT+n,TOP+n,LEFT+end,TOP+end,0xFF827449);
+            text(g,"N",LEFT+point(505)-2,TOP+point(505)-4,0xFFFFDD88);
             for(var entry:discoveries.entries()){
                 int sx=LEFT+point(entry.x()),sz=TOP+point(entry.z());
                 g.outline(sx-3,sz-3,7,7,HudVisibility.color(0xFF101010));

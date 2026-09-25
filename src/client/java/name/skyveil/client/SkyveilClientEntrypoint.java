@@ -38,6 +38,10 @@ import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Connects feature owners to Fabric's lifecycle. Start here when tracing where a
+ * manager is initialized, ticked, reset, or flushed; feature policy lives in its package.
+ */
 public final class SkyveilClientEntrypoint implements ClientModInitializer {
     private static final Logger LOGGER=LoggerFactory.getLogger("skyveil-client");
     private static KeyMapping openMenu;
@@ -54,12 +58,15 @@ public final class SkyveilClientEntrypoint implements ClientModInitializer {
         LOGGER.info("Skyveil reusable infrastructure initialized before gameplay");
         name.skyveil.client.gui.InventoryPreviewHud.register();CompactDamageRenderer.register();PetDisplayHud.register();name.skyveil.client.stats.SkillXpHud.register();name.skyveil.client.mining.CommissionsHud.register();name.skyveil.client.mining.PickaxeAbilityHud.register();name.skyveil.client.stats.PlayerStatsHud.register();name.skyveil.client.performance.PerformanceHud.register();VoidgloomOverlay.register();name.skyveil.client.mining.CorpseWaypoints.register();name.skyveil.client.mining.CrystalHollowsMapHud.register();
         LOGGER.info("Skyveil HUD features registered");
+        // Feature flushes populate the in-memory cache before its single disk replacement.
         ClientLifecycleEvents.CLIENT_STOPPING.register(client->{StoragePreviewManager.shutdown(client);EquipmentShortcutRow.shutdown(client);PetTracker.shutdown(client);AttributeProgressStore.flush();ShardPriceService.flush();name.skyveil.client.auction.AuctionPrices.flushHistory();SkyveilCacheManager.shutdown();ConfigManager.shutdown();});
         ClientPlayConnectionEvents.DISCONNECT.register((handler,client)->{SkyblockSession.disconnect();name.skyveil.client.mining.CrystalHollowsMapHud.reset();name.skyveil.client.mining.CorpseWaypoints.reset();name.skyveil.client.craftcost.CraftCostTooltip.reset();name.skyveil.client.stats.SkillXpHud.reset();name.skyveil.client.mining.CommissionsHud.reset();name.skyveil.client.mining.PickaxeAbilityHud.reset();name.skyveil.client.stats.PlayerStatsHud.reset();name.skyveil.client.performance.PerformanceHud.reset();StoragePreviewManager.disconnect(client);EquipmentShortcutRow.disconnect(client);PetTracker.disconnect(client);CompactDamageManager.clear();VoidgloomOverlay.clear();});
         KeyMapping.Category category=KeyMapping.Category.register(name.skyveil.Skyveil.INSTANCE.id("keybindings"));
         // In 26.1.2 KeyMapping registers itself; Fabric's former helper is no longer present.
         openMenu=new KeyMapping("key.skyveil.open_menu",InputConstants.Type.KEYSYM,GLFW.GLFW_KEY_RIGHT_SHIFT,category);
         ZoomManager.initialize(category);
+        // Update session detection before gated feature work. Mining/stat ticks
+        // also run outside the active branch so their reset conditions can execute.
         ClientTickEvents.END_CLIENT_TICK.register(client->{
             name.skyveil.client.performance.PerformanceHud.tick(client);SkyblockSession.tick(client);name.skyveil.client.mining.CrystalHollowsMapHud.tick(client);name.skyveil.client.mining.CorpseWaypoints.tick(client);name.skyveil.client.mining.CommissionsHud.tick(client);name.skyveil.client.mining.PickaxeAbilityHud.tick(client);name.skyveil.client.stats.PlayerStatsHud.tick(client);ZoomManager.tick();
             if(SkyblockSession.isActive()){
@@ -72,8 +79,16 @@ public final class SkyveilClientEntrypoint implements ClientModInitializer {
         LOGGER.info("Skyveil client initialization completed in {} ms",(System.nanoTime()-started)/1_000_000L);
     }
     static void registerCommands(com.mojang.brigadier.CommandDispatcher<FabricClientCommandSource> dispatcher){
-            dispatcher.register(command("skyveil").executes(ctx->open()).then(command("menu").executes(ctx->open())).then(command("version").executes(ctx->showVersion())).then(command("changelog").executes(ctx->showChangelog())).then(command("update").executes(ctx->update())).then(debugPetCommand()).then(debugHuntingCommand()).then(debugWardrobeCommand()).then(command("debugprices").executes(ctx->debugPrices())));
-            dispatcher.register(command("sv").executes(ctx->open()).then(command("menu").executes(ctx->open())).then(command("version").executes(ctx->showVersion())).then(command("changelog").executes(ctx->showChangelog())).then(command("update").executes(ctx->update())).then(debugPetCommand()).then(debugHuntingCommand()).then(debugWardrobeCommand()).then(command("debugprices").executes(ctx->debugPrices())));
+        // Build each alias from the same command tree so future subcommands cannot drift.
+        for(String alias:java.util.List.of("skyveil","sv")){
+            dispatcher.register(command(alias).executes(ctx->open())
+                .then(command("menu").executes(ctx->open()))
+                .then(command("version").executes(ctx->showVersion()))
+                .then(command("changelog").executes(ctx->showChangelog()))
+                .then(command("update").executes(ctx->update()))
+                .then(debugPetCommand()).then(debugHuntingCommand()).then(debugWardrobeCommand())
+                .then(command("debugprices").executes(ctx->debugPrices())));
+        }
         dispatcher.register(command("skyveilprices").executes(ctx->debugPrices()));
     }
     private static com.mojang.brigadier.builder.LiteralArgumentBuilder<FabricClientCommandSource> command(String name) {

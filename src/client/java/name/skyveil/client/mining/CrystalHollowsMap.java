@@ -10,6 +10,7 @@ public final class CrystalHollowsMap {
         "Precursor Remnants","Lost Precursor City","Crystal Nucleus","Magma Fields",
         "Khazad-dûm","Khazad-dum","Fairy Grotto","Jungle Village","Goblin Queens Den","Goblin Hideout","Precursor City","Bal");
     private CrystalHollowsMap(){}
+    // Normalize a world X or Z coordinate to the closed 0..1 map interval.
     public static double fraction(double coordinate){
         return Math.clamp((coordinate-MIN)/(MAX-MIN),0,1);
     }

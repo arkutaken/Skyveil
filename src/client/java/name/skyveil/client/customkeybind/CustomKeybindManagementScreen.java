@@ -3,7 +3,6 @@ package name.skyveil.client.customkeybind;
 import name.skyveil.client.gui.SkyveilTheme;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
@@ -14,6 +13,7 @@ import java.util.List;
 /** Scrollable management list for persistent custom command keybinds. */
 public final class CustomKeybindManagementScreen extends Screen {
     private final Screen parent;
+    // Hit targets are rebuilt from the rendered rows, including their scroll offset.
     private final List<RowAction> actions=new ArrayList<>();
     private double scroll;
     private String message="";
@@ -52,7 +52,8 @@ public final class CustomKeybindManagementScreen extends Screen {
     private void drawControl(GuiGraphicsExtractor g,int x,int y,int width,String label,int color){g.fill(x,y,x+width,y+22,color);g.centeredText(font,label,x+width/2,y+7,SkyveilTheme.TEXT);}
 
     @Override public boolean mouseClicked(MouseButtonEvent event,boolean doubleClick){
-        if(event.button()==0)for(RowAction row:actions)if(inside(event.x(),event.y(),row.x,row.y,row.width,row.height)){
+        // Scissoring only clips drawing; exclude hidden parts of rows from hit testing too.
+        if(event.button()==0&&inside(event.x(),event.y(),left+12,top+62,panelWidth-24,panelHeight-76))for(RowAction row:actions)if(inside(event.x(),event.y(),row.x,row.y,row.width,row.height)){
             switch(row.action){
                 case TOGGLE -> {if(!CustomKeybindManager.setEnabled(row.binding,!row.binding.enabled)){String conflict=CustomKeybindManager.customConflict(row.binding.key,row.binding.id);message="Key conflicts with \""+conflict+"\".";}else message="";}
                 case EDIT -> minecraft.setScreen(new CustomKeybindEditorScreen(this,row.binding));

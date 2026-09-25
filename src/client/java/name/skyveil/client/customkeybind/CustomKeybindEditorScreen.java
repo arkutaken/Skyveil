@@ -46,6 +46,8 @@ public final class CustomKeybindEditorScreen extends Screen {
     }
 
     private void captureFields(){draft.name=nameBox.getValue().trim();draft.command=CustomKeybindManager.normalizeCommand(commandBox.getValue());}
+    // Validate the whole draft before mutating persistent settings. Disabled bindings
+    // may share keys; enabled bindings must not conflict with another custom command.
     private void save(){
         captureFields();
         if(draft.name.isBlank()){error="Enter a display name.";return;}
@@ -57,6 +59,7 @@ public final class CustomKeybindEditorScreen extends Screen {
     }
     private void delete(){CustomKeybindManager.delete(existing.id);minecraft.setScreen(parent);}
 
+    // Capture mode consumes keys as configuration input instead of normal screen navigation.
     @Override public boolean keyPressed(KeyEvent event){
         if(capturing){
             if(event.key()==GLFW.GLFW_KEY_ESCAPE){capturing=false;refreshButtons();return true;}

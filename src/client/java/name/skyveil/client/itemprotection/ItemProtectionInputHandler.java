@@ -11,6 +11,7 @@ public final class ItemProtectionInputHandler {
     public static void tick(Minecraft client){
         if(!ConfigManager.get().itemProtection.enabled){lockKeyWasDown=false;return;}
         boolean down=InputConstants.isKeyDown(client.getWindow(),ConfigManager.get().itemProtection.lockKey);
+        // Trigger once on the press edge, not every tick while the key is held.
         if(down&&!lockKeyWasDown&&client.screen==null&&client.player!=null){
             var selected=client.player.getInventory().getSelectedItem();
             if(!selected.isEmpty())ItemProtectionManager.toggle(client.player.getInventory().getSelectedSlot());

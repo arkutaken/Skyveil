@@ -13,6 +13,8 @@ public final class TpsEstimator {
         if(!initialized){initialized=true;lastTick=gameTime;lastNanos=now;return;}
         long elapsed=now-lastNanos,delta=gameTime-lastTick;
         if(delta==0)return;
+        // World-time resets and long gaps are discontinuities, not evidence of
+        // extremely low TPS. Start a new baseline instead of averaging them in.
         if(delta<0||elapsed<=0||elapsed>10_000_000_000L){
             reset();update(gameTime,now);return;
         }

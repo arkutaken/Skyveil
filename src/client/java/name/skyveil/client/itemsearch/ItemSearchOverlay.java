@@ -17,6 +17,8 @@ import java.util.WeakHashMap;
 /** Inventory-attached search field and right-hand SkyBlock item result grid. */
 public final class ItemSearchOverlay {
     private static final int CELL_WIDTH=152,CELL_HEIGHT=28,MAX_RESULTS=800;
+    // Keep a lore filter briefly across auction page changes, not across unrelated
+    // inventories. Nano time measures elapsed duration without wall-clock changes.
     private static final long AUCTION_QUERY_TTL_NANOS=15_000_000_000L;
     private static AbstractContainerScreen<?> screen;private static EditBox field;private static List<ItemSearchCatalog.Entry> results=List.of();private static String lastQuery="";private static int scrollRow;private static Bounds bounds;
     private static final Map<ItemStack,Boolean> LORE_MATCHES=new WeakHashMap<>();
@@ -38,7 +40,7 @@ public final class ItemSearchOverlay {
         String count=results.size()>MAX_RESULTS?MAX_RESULTS+"+ of "+results.size():results.size()+"";graphics.text(Minecraft.getInstance().font,"Item Search • "+count+" results",x+7,y+7,SkyveilTheme.TEXT,true);
         if(results.isEmpty())graphics.text(Minecraft.getInstance().font,"No matching SkyBlock items",x+8,y+28,SkyveilTheme.SECONDARY,false);
         int first=scrollRow*columns,limit=Math.min(Math.min(results.size(),MAX_RESULTS),first+rows*columns);
-        for(int index=first;index<limit;index++){int visible=index-first,column=visible%columns,row=visible/columns,cx=x+6+column*CELL_WIDTH,cy=y+24+row*CELL_HEIGHT;boolean hover=inside(mouseX,mouseY,cx,cy,CELL_WIDTH-3,CELL_HEIGHT-2);graphics.fill(cx,cy,cx+CELL_WIDTH-3,cy+CELL_HEIGHT-2,hover?SkyveilTheme.HOVER:((row&1)==0?0x50372A49:0x502E243C));var entry=results.get(index);var stack=entry.stack();graphics.item(stack,cx+4,cy+5);var line=Minecraft.getInstance().font.split(stack.getHoverName(),CELL_WIDTH-28);if(!line.isEmpty())graphics.text(Minecraft.getInstance().font,line.getFirst(),cx+24,cy+9,0xFFFFFFFF,true);if(hover)graphics.setTooltipForNextFrame(Minecraft.getInstance().font,stack,mouseX,mouseY);}
+        for(int index=first;index<limit;index++){int visible=index-first,column=visible%columns,row=visible/columns,cx=x+6+column*CELL_WIDTH,cy=y+24+row*CELL_HEIGHT;boolean hover=inside(mouseX,mouseY,cx,cy,CELL_WIDTH-3,CELL_HEIGHT-2);graphics.fill(cx,cy,cx+CELL_WIDTH-3,cy+CELL_HEIGHT-2,hover?SkyveilTheme.HOVER:((row&1)==0?0x50383838:0x50282828));var entry=results.get(index);var stack=entry.stack();graphics.item(stack,cx+4,cy+5);var line=Minecraft.getInstance().font.split(stack.getHoverName(),CELL_WIDTH-28);if(!line.isEmpty())graphics.text(Minecraft.getInstance().font,line.getFirst(),cx+24,cy+9,0xFFFFFFFF,true);if(hover)graphics.setTooltipForNextFrame(Minecraft.getInstance().font,stack,mouseX,mouseY);}
         if(maxScroll>0)graphics.text(Minecraft.getInstance().font,"Scroll for more",x+panelWidth-78,y+contentHeight-11,SkyveilTheme.SECONDARY,false);
     }
     public static boolean keyPressed(AbstractContainerScreen<?> owner,KeyEvent event){if(owner!=screen||field==null||!field.isFocused()||event.key()==GLFW.GLFW_KEY_ESCAPE)return false;field.keyPressed(event);return true;}

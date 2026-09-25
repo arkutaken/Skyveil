@@ -2,7 +2,6 @@ package name.skyveil.client.inventorybuttons;
 
 import name.skyveil.client.gui.SkyveilTheme;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -20,6 +19,7 @@ public final class InventoryButtonEditorScreen extends Screen {
         super(Component.literal(existing == null ? "Add Inventory Button" : "Edit Inventory Button"));
         this.parent = parent;
         this.existing = existing;
+        // Edit a copy: Cancel must not mutate the saved button definition.
         this.draft = existing == null ? new InventoryButtonDefinition() : existing.copy();
         this.position = existing == null ? requested : InventoryButtonPosition.parse(existing.position);
         this.draft.position = position.name();
@@ -52,6 +52,7 @@ public final class InventoryButtonEditorScreen extends Screen {
         draft.position = position.name();
     }
 
+    // Widgets are rebuilt on return, so preserve typed text in the draft first.
     private void openIconPicker() {
         captureFields();
         minecraft.setScreen(new InventoryButtonIconPickerScreen(this, icon -> {
@@ -67,6 +68,7 @@ public final class InventoryButtonEditorScreen extends Screen {
             error = "Enter a command before saving.";
             return;
         }
+        // Reuse the persistent ID so saving updates the existing entry.
         if (existing != null) draft.id = existing.id;
         InventoryButtonManager.save(draft);
         minecraft.setScreen(parent);

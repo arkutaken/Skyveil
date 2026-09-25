@@ -25,6 +25,8 @@ public enum SkyblockRarity {
 
     public int rgb(){return rgb;}
 
+    // Normalize spelling aliases separately from color lookup: several rarities
+    // share an RGB value and cannot be distinguished by color alone.
     public static SkyblockRarity fromLabel(String raw) {
         if(raw==null)return null;
         String value=raw.toUpperCase(java.util.Locale.ROOT).replace('_',' ').replaceAll("\\s+"," ").trim();

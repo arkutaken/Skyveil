@@ -19,6 +19,8 @@ public final class PetItemResolver {
         for(String word:words)if(!word.isBlank())result.append(result.isEmpty()?"":" ").append(Character.toUpperCase(word.charAt(0))).append(word.substring(1));
         return result.toString();
     }
+    // Try the actual bundled item icon before recognizable vanilla stand-ins.
+    // Unknown items remain empty so the HUD does not invent an icon.
     public static ItemStack resolve(String id,String name){
         String internalId=id==null?"":id.trim().toUpperCase(Locale.ROOT);
         String namedId=(name==null?"":name).trim().toUpperCase(Locale.ROOT).replaceAll("[^A-Z0-9]+","_");

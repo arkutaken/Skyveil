@@ -36,6 +36,7 @@ public final class InventoryPreviewHud {
                 int sx=5+column*20,sy=5+row*20;
                 
                 if(client.player==null)continue;
+                // Slots 0..8 are the hotbar; this preview starts with main inventory slot 9.
                 var stack=client.player.getInventory().getItem(9+row*9+column);
                 if(stack.isEmpty())continue;
                 g.item(stack,sx,sy);

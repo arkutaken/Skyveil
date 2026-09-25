@@ -33,6 +33,8 @@ public final class HudVisibility {
     private static final java.util.List<Runnable> pendingDraws=new java.util.ArrayList<>();
     private static final java.util.List<HudOcclusion.Rect> tooltipBounds=new java.util.ArrayList<>();
 
+    // A new extractor identifies a new frame. Never carry deferred draws or
+    // reserved tooltip rectangles into the next frame.
     private static void frame(net.minecraft.client.gui.GuiGraphicsExtractor graphics){
         if(pendingGraphics==graphics)return;
         pendingGraphics=graphics;pendingDraws.clear();tooltipBounds.clear();

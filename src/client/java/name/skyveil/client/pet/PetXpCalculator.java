@@ -36,6 +36,7 @@ public final class PetXpCalculator {
         int cap=maxLevel(internalId,internalId);
         if(totalXp<0||rarity==null)return 0;
         String id=internalId==null?"":internalId.toUpperCase(Locale.ROOT);
+        // Rarity shifts the shared XP table; Bingo uses the unshifted progression.
         int offset=id.equals("BINGO")?0:switch(rarity){case COMMON->0;case UNCOMMON->6;case RARE->11;case EPIC->16;default->20;};
         boolean dragon=SPECIAL_CAPS.containsKey(id);
         double remaining=totalXp;
@@ -68,6 +69,7 @@ public final class PetXpCalculator {
     private static Result fromTotalXp(double totalXp,String internalId,int displayedLevel,int maxLevel,SkyblockRarity rarity){
         if(totalXp<0||rarity==null||displayedLevel<1||displayedLevel>=maxLevel)return null;
         String id=internalId==null?"":internalId.toUpperCase(Locale.ROOT);
+        // Rarity shifts the shared XP table; Bingo uses the unshifted progression.
         int offset=id.equals("BINGO")?0:switch(rarity){case COMMON->0;case UNCOMMON->6;case RARE->11;case EPIC->16;default->20;};
         boolean dragon=SPECIAL_CAPS.containsKey(id);
         double required=requirement(offset,displayedLevel,dragon);

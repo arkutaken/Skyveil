@@ -37,6 +37,7 @@ public final class CustomKeybindManager {
 
     public static boolean validKey(int key){return key>=GLFW.GLFW_KEY_SPACE&&key<=GLFW.GLFW_KEY_LAST;}
 
+    // Exclude the edited entry itself; only another enabled binding blocks this key.
     public static String customConflict(int key,String editingId){
         if(!validKey(key))return null;
         for(CustomKeybindDefinition binding:all())if(binding.enabled&&!Objects.equals(binding.id,editingId)&&binding.key==key)return binding.name;

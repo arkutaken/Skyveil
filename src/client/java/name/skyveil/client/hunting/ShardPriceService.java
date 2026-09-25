@@ -34,6 +34,8 @@ public final class ShardPriceService {
     private static final long SUCCESS_REFRESH_MS=60_000L,FAILURE_RETRY_MS=60_000L;
     private static final HttpClient HTTP=HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).followRedirects(HttpClient.Redirect.NORMAL).build();
     private static final AtomicBoolean INITIALIZED=new AtomicBoolean(),REFRESHING=new AtomicBoolean();
+    // Readers see one published snapshot; workers construct replacements away
+    // from the client thread. Status distinguishes cached data from live results.
     private static volatile Snapshot snapshot=new Snapshot(Map.of(),0,0,false);
     private static volatile long lastAttempt;
     private ShardPriceService(){}

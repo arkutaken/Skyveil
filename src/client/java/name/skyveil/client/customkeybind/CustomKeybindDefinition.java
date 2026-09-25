@@ -10,6 +10,7 @@ public final class CustomKeybindDefinition {
     public int key=GLFW.GLFW_KEY_UNKNOWN;
     public boolean enabled=true;
 
+    // Forms edit a detached draft; keeping its ID makes Save replace the same binding.
     public CustomKeybindDefinition copy(){
         CustomKeybindDefinition copy=new CustomKeybindDefinition();
         copy.id=id;copy.name=name;copy.command=command;copy.key=key;copy.enabled=enabled;

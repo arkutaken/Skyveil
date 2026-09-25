@@ -42,6 +42,8 @@ public abstract class GuiMixin {
         args.set(5,name.skyveil.client.gui.HudVisibility.color(args.get(5)));
     }
 
+    // Each parser returns the remaining action-bar text for the next parser.
+    // Only recognized segments are removed, leaving unrelated server messages.
     @org.spongepowered.asm.mixin.injection.ModifyVariable(method="setOverlayMessage",at=@At("HEAD"),argsOnly=true)
     private net.minecraft.network.chat.Component skyveil$playerStats(net.minecraft.network.chat.Component message){
         return name.skyveil.client.stats.SkillXpHud.onActionBar(name.skyveil.client.stats.PlayerStatsHud.onActionBar(message));

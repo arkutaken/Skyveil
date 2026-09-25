@@ -5,14 +5,12 @@ import name.skyveil.client.gui.HudVisibility;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.network.chat.Component;
 import java.util.Locale;
 
 /** Screenshot-style FPS, latency, and estimated server tick rate. */
 public final class PerformanceHud {
     private static final TpsEstimator TPS=new TpsEstimator();
     private static final PingMeasurement PING=new PingMeasurement();
-    private static final int GRAY=0xAAAAAA;
     private PerformanceHud(){}
 
     public static void register(){
@@ -23,6 +21,8 @@ public final class PerformanceHud {
     }
 
     public static void reset(){TPS.reset();PING.reset();}
+    // The measurement object owns scheduling; token zero means there is no probe
+    // to send, so an every-tick caller does not cause every-tick network traffic.
     public static void tick(Minecraft client){
         if(!ConfigManager.get().performance.enabled||client.player==null||client.getConnection()==null)return;
         long token=PING.request(System.nanoTime());

@@ -17,6 +17,8 @@ public final class CustomKeybindInputHandler {
         if(!ConfigManager.get().customKeybinds.enabled){DOWN.clear();CURRENT.clear();return;}
         var bindings=CustomKeybindManager.all();CURRENT.clear();
         for(var binding:bindings)if(CustomKeybindManager.validKey(binding.key)&&InputConstants.isKeyDown(client.getWindow(),binding.key))CURRENT.add(binding.key);
+        // Keep tracking held keys even in screens. Closing a screen while holding
+        // a key must not create a fresh press and accidentally send a command.
         boolean canExecute=client.player!=null&&client.getConnection()!=null&&client.screen==null;
         if(canExecute)for(var binding:bindings)if(binding.enabled&&CURRENT.contains(binding.key)&&!DOWN.contains(binding.key))CustomKeybindManager.execute(binding);
         DOWN.clear();DOWN.addAll(CURRENT);

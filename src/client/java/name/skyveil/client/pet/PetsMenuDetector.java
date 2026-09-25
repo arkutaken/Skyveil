@@ -8,6 +8,8 @@ import java.util.Locale;
 public final class PetsMenuDetector {
     private PetsMenuDetector() {}
 
+    // Page decorations may vary; explicitly exclude the held-item catalog even
+    // though its title also contains the word 'pet'.
     public static boolean matches(AbstractContainerScreen<?> screen) {
         if(screen==null)return false;
         String title=screen.getTitle().getString().toLowerCase(Locale.ROOT)

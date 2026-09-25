@@ -21,6 +21,8 @@ public final class ItemProtectionManager {
     private ItemProtectionManager(){}
     public static boolean isLocked(int inventorySlot){return ConfigManager.get().lockedInventorySlots.contains(inventorySlot);}
     public static boolean isProtected(int inventorySlot){return ConfigManager.get().itemProtection.enabled&&isLocked(inventorySlot);}
+    // Menu slot numbers vary by container. Persist only indices from the player's
+    // own inventory; -1 means this slot is outside that supported namespace.
     public static int playerInventoryIndex(Slot slot){
         Minecraft client=Minecraft.getInstance();
         return client.player!=null&&slot!=null&&slot.container==client.player.getInventory()?slot.getContainerSlot():-1;
@@ -35,6 +37,8 @@ public final class ItemProtectionManager {
         int index=playerInventoryIndex(hovered);
         lockKeyDown=true;linkUsedDuringPress=false;lockPressSlot=index>=0&&((hovered!=null&&hovered.hasItem())||isLocked(index))?index:-1;return true;
     }
+    // Delay the toggle until release so using the same press for linking does not
+    // also change the slot's lock state.
     public static boolean endLockKeyPress(){
         if(!lockKeyDown)return false;
         lockKeyDown=false;int toggleSlot=lockPressSlot;lockPressSlot=-1;pendingLinkSlot=-1;

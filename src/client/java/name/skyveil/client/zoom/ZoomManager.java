@@ -22,5 +22,7 @@ public final class ZoomManager {
     static float zoomedFov(float vanilla,int selected){return (float)Math.max(1.0,vanilla/FACTORS[Math.max(0,Math.min(FACTORS.length-1,selected))]);}
     static double factor(int selected){return FACTORS[Math.max(0,Math.min(FACTORS.length-1,selected))];}
     private static boolean active(){Minecraft client=Minecraft.getInstance();return keyMapping!=null&&ConfigManager.get().zoom.enabled&&client!=null&&client.level!=null&&client.player!=null&&client.screen==null&&keyMapping.isDown();}
+    // Rebind only after a settings change; resetting the global key map every tick
+    // would do unnecessary work and interfere with input state.
     private static void syncKey(){if(keyMapping==null)return;int wanted=ConfigManager.get().zoom.key;if(wanted!=configuredKey){configuredKey=wanted;keyMapping.setKey(InputConstants.Type.KEYSYM.getOrCreate(wanted));KeyMapping.resetMapping();}}
 }

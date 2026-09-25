@@ -25,6 +25,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 /** Observes authoritative server updates only after vanilla has applied them to client state. */
 @Mixin(ClientPacketListener.class)
 public abstract class ClientPacketListenerMixin {
+    // Consume only pongs owned by the performance probe; other responses remain vanilla's.
     @Inject(method="handlePongResponse",at=@At("HEAD"),cancellable=true)
     private void skyveil$performancePong(net.minecraft.network.protocol.ping.ClientboundPongResponsePacket packet,CallbackInfo ci){
         if(name.skyveil.client.performance.PerformanceHud.onPong(packet.time()))ci.cancel();
@@ -68,6 +69,8 @@ public abstract class ClientPacketListenerMixin {
     @Inject(method="handleTabListCustomisation",at=@At("TAIL"))
     private void skyveil$tabListUpdated(ClientboundTabListPacket packet,CallbackInfo ci){if(SkyblockSession.isActive())PetTracker.onTabListPacket("TAB_HEADER_FOOTER");}
 
+    // Invalidate observations after vanilla applies slot contents. Managers defer
+    // parsing until the menu settles instead of reading half-delivered pages.
     @Inject(method="handleContainerSetSlot",at=@At("TAIL"))
     private void skyveil$containerSlotUpdate(ClientboundContainerSetSlotPacket packet,CallbackInfo ci){if(!SkyblockSession.isActive())return;PetTracker.onContainerPacket(packet.getContainerId(),"SET_SLOT");AttributeMenuPanel.onContainerUpdate(packet.getContainerId());HuntingBoxValuePanel.onContainerUpdate(packet.getContainerId());StoragePreviewManager.onContainerUpdate(packet.getContainerId());EquipmentShortcutRow.onContainerUpdate(packet.getContainerId());}
 

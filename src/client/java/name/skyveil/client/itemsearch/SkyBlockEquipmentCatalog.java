@@ -27,6 +27,8 @@ public final class SkyBlockEquipmentCatalog {
         }
     }
 
+    // Indices match the shortcut row: necklace, cloak, belt, gloves/bracelet.
+    // Return -1 for unknown categories rather than assigning a plausible slot.
     public static int typeFromText(String value){
         String text=" "+normalize(value).replace('_',' ')+" ";
         if(text.contains(" necklace "))return 0;

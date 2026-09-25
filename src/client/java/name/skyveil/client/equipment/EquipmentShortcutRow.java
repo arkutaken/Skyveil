@@ -50,6 +50,8 @@ public final class EquipmentShortcutRow {
         saveIfChanged(client,before);
     }
 
+    // The server marks the selected loadout with a lime-dye control. Use its
+    // column rather than treating every equipment set as currently equipped.
     private static Integer selectedEquipmentSetColumn(AbstractContainerScreen<?> screen){
         for(Slot slot:screen.getMenu().slots)if(slot.index>35&&slot.index<45&&itemPath(slot.getItem()).equals("lime_dye"))return slot.index%9;
         return null;

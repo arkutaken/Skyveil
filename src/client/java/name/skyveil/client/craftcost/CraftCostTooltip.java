@@ -34,9 +34,14 @@ public final class CraftCostTooltip {
         var custom=stack.get(DataComponents.CUSTOM_DATA);if(custom==null)return lines;
         var extra=BazaarTooltip.attributes(custom.copyTag());
         if(extra.getStringOr("id","").isBlank())return lines;
+        // Also clean reused tooltips when the auction-price option is disabled.
+        if(name.skyveil.client.auction.AuctionTooltip.isMinion(extra.getStringOr("id","")))
+            lines=name.skyveil.client.auction.AuctionTooltip.craftCostOnly(lines);
         if(isInherentlySoulbound(extra.getStringOr("id",""))||!Visibility.RULES.shouldShow(extra))
             return name.skyveil.client.auction.AuctionTooltip.removePriceLines(lines,"Full craft cost: ");
         long now=System.currentTimeMillis();
+        // A market replacement invalidates the hovered result immediately, even
+        // inside its normal one-second reuse window.
         long auctionRevision=AuctionPrices.revision(),bazaarRevision=BazaarPrices.revision();
         if(!extra.equals(lastItem)||now-calculatedAt>=1000||auctionRevision!=lastAuctionRevision||bazaarRevision!=lastBazaarRevision){
             try{lastResult=new CraftCostCalculator(catalog(),CraftCostTooltip::price).calculate(extra);}

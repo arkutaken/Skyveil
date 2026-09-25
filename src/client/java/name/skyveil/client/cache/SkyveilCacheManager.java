@@ -34,8 +34,11 @@ public final class SkyveilCacheManager {
     }
 
     public static boolean isLoaded(){return loaded;}
+    /** Wait only from a worker or shutdown path; gameplay can check isLoaded instead. */
     public static void awaitLoaded(){CompletableFuture<Void> future; synchronized(LOCK){future=loading;}if(future!=null)future.join();}
 
+    // Return copies across the ownership boundary: feature edits must go through
+    // putProfileSection so size limits and the dirty flag remain authoritative.
     public static CompoundTag profileSection(String account,String section){
         if(!loaded||!validKey(account,64)||!validKey(section,40))return null;
         synchronized(LOCK){CompoundTag profile=root.getCompoundOrEmpty("profiles").getCompoundOrEmpty(account);return profile.getCompound(section).map(CompoundTag::copy).orElse(null);}

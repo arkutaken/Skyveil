@@ -29,6 +29,8 @@ public final class HuntingBoxValuePanel {
     private static AbstractContainerScreen<?> cachedScreen;private static boolean dirty=true;
     private static int pendingFingerprint=Integer.MIN_VALUE,pendingConfirmations,scroll,totalPages=1;
     private static final Map<String,Entry> ENTRIES=new HashMap<>();private static final Map<Integer,Set<String>> PAGE_KEYS=new HashMap<>();private static final Set<Integer> VISITED=new HashSet<>();
+    // Entry and market revisions invalidate row prices independently, avoiding
+    // reparsing every observed item just because the Bazaar snapshot changed.
     private static List<Row> cachedRows=List.of();private static long entryRevision,cachedEntryRevision=-1,cachedPriceRevision=-1;
     private static Bounds bounds;
     private HuntingBoxValuePanel(){}
@@ -52,7 +54,7 @@ public final class HuntingBoxValuePanel {
         graphics.enableScissor(x+1,viewportTop,x+width-1,viewportBottom);try{
         if(rows.isEmpty())graphics.text(Minecraft.getInstance().font,"No owned shards observed",x+6,viewportTop+5,SkyveilTheme.SECONDARY,false);
         for(int index=0;index<visible&&scroll+index<rows.size();index++){
-            Row row=rows.get(scroll+index);int rowY=viewportTop+index*ROW_HEIGHT;graphics.fill(x+1,rowY,x+width-1,rowY+ROW_HEIGHT,(index&1)==0?0x302E243C:0x30372A49);graphics.item(row.stack(),x+3,rowY+2);
+            Row row=rows.get(scroll+index);int rowY=viewportTop+index*ROW_HEIGHT;graphics.fill(x+1,rowY,x+width-1,rowY+ROW_HEIGHT,(index&1)==0?0x30282828:0x30383838);graphics.item(row.stack(),x+3,rowY+2);
             String unavailable=priceStatus==ShardPriceService.Status.LOADING?"loading…":"no data";
             String values=row.unitPrice()==null?unavailable:priceValues(row.unitPrice(),row.amount());
             Component label=row.stack().getHoverName().copy().append(Component.literal(" x"+row.amount()).withStyle(ChatFormatting.GRAY));

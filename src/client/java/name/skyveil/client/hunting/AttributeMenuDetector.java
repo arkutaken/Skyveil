@@ -10,6 +10,8 @@ import java.util.regex.Pattern;
 public final class AttributeMenuDetector {
     private static final Pattern TITLE=Pattern.compile("^(?:\\(\\s*(\\d+)\\s*/\\s*(\\d+)\\s*\\)\\s*)?attribute menu$",Pattern.CASE_INSENSITIVE);
     private AttributeMenuDetector(){}
+    // A matching title alone is insufficient: count server-owned slots separately
+    // from the player's inventory to verify the expected menu geometry.
     public static boolean matches(AbstractContainerScreen<?> screen){
         if(screen==null||!TITLE.matcher(normalize(screen.getTitle().getString())).matches())return false;
         Minecraft client=Minecraft.getInstance();int serverSlots=0;

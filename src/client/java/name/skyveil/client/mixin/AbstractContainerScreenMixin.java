@@ -65,6 +65,8 @@ public abstract class AbstractContainerScreenMixin {
     @Inject(method="extractContents",at=@At("TAIL"))
     private void skyveil$drawStorageBeforeCarriedItem(GuiGraphicsExtractor graphics,int mouseX,int mouseY,float partialTick,CallbackInfo ci){if(SkyblockSession.isActive())StoragePreviewManager.observeAndRender((AbstractContainerScreen<?>)(Object)this,graphics,hoveredSlot,leftPos,topPos,imageWidth,imageHeight,mouseX,mouseY);}
 
+    // Overlay controls get first refusal. Cancel only after a feature handles the
+    // click, otherwise let vanilla carry out normal inventory interaction.
     @Inject(method="mouseClicked",at=@At("HEAD"),cancellable=true)
     private void skyveil$clickInventoryButton(MouseButtonEvent event,boolean doubleClick,CallbackInfoReturnable<Boolean> cir){
         if(!SkyblockSession.isActive())return;
@@ -118,6 +120,8 @@ public abstract class AbstractContainerScreenMixin {
         }
     }
 
+    // Slot protection must run before vanilla sends an inventory action. Menu slot
+    // IDs and player inventory indices are different; the manager translates them.
     @Inject(method="slotClicked",at=@At("HEAD"),cancellable=true)
     private void skyveil$protectSlot(Slot slot,int slotId,int button,ContainerInput input,CallbackInfo ci){
         if(!SkyblockSession.isActive())return;

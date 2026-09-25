@@ -41,6 +41,8 @@ final class AttributeSessionData {
         PROGRESS.replaceAll((progressKey,row)->key.equals(row.key())?AttributeMenuParser.withOwned(row,amount):row);
         if(before==null||before!=Math.max(0,amount)){revision++;return true;}return false;
     }
+    // Replace the contribution of a revisited page. An item disappearing from a
+    // known page clears its old quantity; other unvisited pages stay untouched.
     static void observeOwnedPage(int page,Map<String,Long> quantities){
         ensureWorld();boolean changed=false;Set<String> previous=OWNED_PAGE_PRODUCTS.put(page,Set.copyOf(quantities.keySet()));
         if(previous!=null)for(String product:previous)if(!quantities.containsKey(product))changed|=putOwnedInternal(product,0);

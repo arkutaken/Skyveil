@@ -21,6 +21,8 @@ public final class ShardSortControls {
         }
     }
 
+    // Clicking the active column reverses direction; a newly selected column
+    // starts descending. Null leaves clicks outside these controls unconsumed.
     public static Selection click(double mouseX,double mouseY,int x,int y,int width,ShardSortMode active,boolean descending){
         int count=ShardSortMode.values().length,gap=2,buttonWidth=(width-gap*(count-1))/count;
         for(int index=0;index<ShardSortMode.values().length;index++){

@@ -23,6 +23,8 @@ public final class AttributeProgressStore {
     private static final Logger LOGGER=LoggerFactory.getLogger("skyveil-attribute-cache");
     private static final Path LEGACY_PATH=FabricLoader.getInstance().getConfigDir().resolve("skyveil").resolve("attribute_progress.json");
     private static final int SCHEMA=1,MAX_ROWS=400,MAX_OWNED=640,MAX_PAGES=64;
+    // Keep the latest pending snapshot per account; repeated observations replace
+    // memory entries instead of creating a new file for every menu update.
     private static final Map<String,Snapshot> PENDING=new LinkedHashMap<>();
     private static CompletableFuture<Void> migration=CompletableFuture.completedFuture(null);
     private static boolean initializationStarted;

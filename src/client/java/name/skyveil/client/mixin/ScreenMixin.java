@@ -18,6 +18,7 @@ import java.util.List;
 
 @Mixin(Screen.class)
 public abstract class ScreenMixin {
+    // Deferred HUD drawing waits until tooltips have supplied their final bounds.
     @Inject(method="extractRenderStateWithTooltipAndSubtitles",at=@At("RETURN"))
     private void skyveil$finishContainerHud(net.minecraft.client.gui.GuiGraphicsExtractor graphics,int mouseX,int mouseY,float partialTick,CallbackInfo ci){
         name.skyveil.client.gui.HudVisibility.finish(graphics);
@@ -26,6 +27,8 @@ public abstract class ScreenMixin {
     @Inject(method="removed",at=@At("HEAD"))
     private void skyveil$resetTooltipScroll(CallbackInfo ci){ScrollableTooltipState.reset();}
 
+    // Decorators consume the preceding result so enabled features compose rather
+    // than overwrite one another's tooltip lines.
     @Inject(method="getTooltipFromItem",at=@At("RETURN"),cancellable=true)
     private static void skyveil$addDungeonItemInfo(Minecraft client,ItemStack stack,CallbackInfoReturnable<List<Component>> cir){
         if(SkyblockSession.isActive()&&ConfigManager.get().auctionTooltip)

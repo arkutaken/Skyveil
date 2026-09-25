@@ -19,6 +19,8 @@ public final class PickaxeAbilityParser {
                 var result=namedStatus(ability,inline);if(result!=null)return result;
                 ability=inline;
             }
+            // Limit lookahead to this widget's few rows. Do not consume a timer
+            // belonging to an unrelated section farther down the player list.
             for(int next=i+1;next<Math.min(lines.size(),i+4);next++){
                 String line=clean(lines.get(next));if(line.isEmpty())break;
                 var result=namedStatus(ability,line);if(result!=null)return result;

@@ -11,9 +11,18 @@ public final class CraftCostCalculator {
     private final JsonObject catalog;
     private final Function<String,Double> prices;
     public CraftCostCalculator(JsonObject catalog,Function<String,Double> prices){this.catalog=catalog;this.prices=prices;}
+    /**
+     * Coins are null if any required priced input is unresolved. Nonmarket
+     * requirements (such as Kuudra Teeth) remain separate material quantities.
+     */
     public record Result(Double coins,Set<String> missing,Map<String,Integer> materials){
         public Result(Double coins,Set<String> missing){this(coins,missing,Map.of());}
     }
+    /**
+     * Prices one item from its base recipe/replacement plus installed upgrades.
+     * Recursion has a shared work budget to keep malformed/cyclic catalogs bounded.
+     * The calculator carries per-call state and should not be shared across threads.
+     */
     public Result calculate(CompoundTag extra){
         remaining=2048;
         var sum=new Sum();
@@ -165,6 +174,8 @@ public final class CraftCostCalculator {
         return best;
     }
 
+    // visiting detects cycles along this recipe path; remove the ID in finally
+    // so another independent recipe may still use that ingredient legitimately.
     private Double base(String id,Set<String> visiting,int depth){
         if(--remaining<0||depth>20||!visiting.add(id))return null;
         try{
@@ -195,7 +206,11 @@ public final class CraftCostCalculator {
             if(id.equals("KUUDRA_TEETH")||id.equals("HEAVY_PEARL")){
                 materials.merge(id,count,Integer::sum);return;
             }
-            Double price=prices.apply(id);add(price==null?null:price*count,id);
+            Double price=prices.apply(id);
+            // Installed parts can have no active clean listing. Reconstruct a known
+            // recipe instead, while retaining unknown inputs as unavailable.
+            if(price==null&&object(catalog,"recipes").has(id))price=base(id,new HashSet<>(),0);
+            add(price==null?null:price*count,id);
         }
         void costs(JsonArray costs){for(var cost:costs)cost(cost.getAsJsonObject());}
         void cost(JsonObject cost){

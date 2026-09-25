@@ -20,6 +20,8 @@ public abstract class ContainerScreenMixin {
     @Shadow @Final private static Identifier CONTAINER_BACKGROUND;
     @Shadow @Final private int containerRows;
 
+    // Keep the player's inventory section visible while the storage workspace
+    // replaces only the chest presentation; the backing menu is still live.
     @Inject(method="extractBackground",at=@At("HEAD"),cancellable=true)
     private void skyveil$hideStorageContainer(GuiGraphicsExtractor graphics,int mouseX,int mouseY,float partialTick,CallbackInfo ci){
         ContainerScreen screen=(ContainerScreen)(Object)this;if(!SkyblockSession.isActive()||!StoragePreviewManager.isActive(screen))return;ContainerScreenAccessor bounds=(ContainerScreenAccessor)this;int left=bounds.skyveil$getLeftPos(),inventoryY=bounds.skyveil$getTopPos()+containerRows*18+17,width=bounds.skyveil$getImageWidth();graphics.blit(RenderPipelines.GUI_TEXTURED,CONTAINER_BACKGROUND,left,inventoryY,0,126,width,96,256,256);ContainerDarkModeRenderer.render(graphics,left,inventoryY,width,96);ci.cancel();

@@ -16,6 +16,7 @@ final class DamageTextParser {
      * newly introduced damage-source glyphs are not silently discarded.
      */
     private static final Pattern DAMAGE=Pattern.compile("^([^\\p{L}\\p{N}\\s,./]{0,6})([0-9]{1,3}(?:,[0-9]{3})+|[0-9]+(?:\\.[0-9]+)?)([kKmMbBtT]?)([^\\p{L}\\p{N}\\s,./]{0,6})$");
+    // BigInteger preserves large damage values before compact display formatting.
     private DamageTextParser(){}
 
     static Optional<Parsed> parse(String raw){

@@ -43,6 +43,8 @@ public final class CompactDamageManager {
         LivingEntity target=canonicalTarget(living);MELEE_ATTACKS.put(target.getId(),new MeleeAttack(client.level.getGameTime(),wearingCrimson(client),null,false));
     }
 
+    // Entity IDs can be reported repeatedly as metadata changes. Count a recognized
+    // splash once, and associate it with a nearby living target before aggregating.
     public static void onEntityAddedOrUpdated(Entity entity){
         if(!(entity instanceof ArmorStand stand)||!enabled()||SEEN.contains(entity.getId()))return;
         Minecraft client=Minecraft.getInstance();if(client==null||client.level==null||client.player==null||stand.level()!=client.level)return;

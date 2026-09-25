@@ -12,6 +12,8 @@ public final class DungeonTerminalDetector {
         return screen!=null&&matchesTitle(screen.getTitle().getString());
     }
 
+    // Strip server formatting before matching known puzzle titles. Keep this list
+    // specific so ordinary inventories do not lose their command buttons.
     static boolean matchesTitle(String title) {
         String value=(title==null?"":title).replaceAll("(?:\\u00c2)?\\u00a7.","")
             .toLowerCase(Locale.ROOT).replaceAll("\\s+"," ").trim();

@@ -17,6 +17,11 @@ final class AuctionSimilarity {
         "dye_item","skin","dungeon_item","baseStatBoostPercentage","item_tier","item_durability",
         "new_years_cake","edition","model","color");
     private AuctionSimilarity(){}
+    /**
+     * Canonicalizes supported value-affecting metadata before hashing it.
+     * Equivalent field order and legacy aliases must produce the same key.
+     * An empty key means the item cannot safely participate in comparisons.
+     */
     static String key(CompoundTag extra){
         String identity=AuctionPrices.identity(extra);
         if(identity.isBlank())return "";
@@ -51,6 +56,8 @@ final class AuctionSimilarity {
     private static void addNumber(Map<String,JsonElement> parts,String key,int value){
         if(value!=0)parts.put(key,new JsonPrimitive(value));
     }
+    // Sort compound keys and list entries so NBT storage order does not change
+    // compatibility. Empty and zero values are normalized to absence.
     private static JsonElement canonical(Tag value){
         if(value instanceof CompoundTag compound){
             var result=new TreeMap<String,JsonElement>();

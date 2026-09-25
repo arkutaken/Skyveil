@@ -47,6 +47,8 @@ public final class SkillXpHud {
         var client=Minecraft.getInstance();var c=ConfigManager.get().skillXp;
         var value=preview?new SkillXpParser.Reading("Farming","+24","158,094/217,000",158094d/217000,0,0):latest;
         if(value==null)return;
+        // Keep the notification visible for three seconds, fading during the last
+        // second. Layout previews use full opacity and do not depend on recent XP.
         int alpha=preview?255:(int)(255*Math.min(1,(3_000_000_000L-(System.nanoTime()-received))/1_000_000_000d));
         if(alpha<=0)return;
         int color=(alpha<<24)|(name.skyveil.client.gui.SkyveilTheme.ACCENT&0xFFFFFF);

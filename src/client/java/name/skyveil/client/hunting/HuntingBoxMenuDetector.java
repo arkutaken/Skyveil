@@ -17,6 +17,8 @@ public final class HuntingBoxMenuDetector {
         return serverSlots>=54;
     }
     public static Page page(AbstractContainerScreen<?> screen){return parsePage(screen==null?"":screen.getTitle().getString());}
+    // Missing page decorations mean a one-page menu; malformed numbers must not
+    // escape into the page accumulator as invalid indices.
     static Page parsePage(String title){
         Matcher matcher=TITLE.matcher(normalize(title));if(!matcher.matches()||matcher.group(1)==null)return new Page(1,1);
         try{return new Page(Math.max(1,Integer.parseInt(matcher.group(1))),Math.max(1,Integer.parseInt(matcher.group(2))));}

@@ -1,5 +1,8 @@
-## 1.24.22
+## 1.24.29
 
-- Improve toggle readability with shadow-free white labels on a darker enabled background.
-- Remove panel backgrounds behind health, mana, and vitality.
-- Automatically fit defense and speed backgrounds and HUD Layout bounds to the displayed number.
+- Repair malformed optional legacy settings without resetting unrelated configuration.
+- Split configuration migration into focused, commented methods and share command alias registration.
+- Prevent repeated price decoration from growing tooltips or retaining stale Bazaar rows.
+- Reuse item metadata during Bazaar decoration and publish Bazaar quotes with matching timestamps.
+- Prevent clipped custom keybind controls from receiving clicks outside their viewport.
+- Clean partial and rejected updater downloads after failure or installation.

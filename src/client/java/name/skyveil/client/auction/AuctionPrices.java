@@ -55,6 +55,7 @@ public final class AuctionPrices {
         ensureFresh();
         return similarAverage(snapshot,HISTORY,extra,System.currentTimeMillis());
     }
+    // Old history alone cannot justify an estimate when today's matching market is empty.
     static AuctionHistory.Average similarAverage(Snapshot current,AuctionHistory history,CompoundTag extra,long now){
         String key=AuctionSimilarity.key(extra);
         if(now-current.received()>900_000||key.isEmpty()||!current.similar().containsKey(key))return null;
@@ -63,6 +64,11 @@ public final class AuctionPrices {
     private static volatile String lastFailure="none";
     private AuctionPrices(){}
 
+    /**
+     * Schedules a refresh when a consumer needs prices; never waits for HTTP.
+     * The retry window also covers failures, preventing repeated tooltip calls
+     * from turning a missing quote into a burst of downloads.
+     */
     public static void ensureFresh(){
         if(System.currentTimeMillis()<nextAttempt||!FETCHING.compareAndSet(false,true))return;
         // Claim the retry window before starting the worker, including failed initial downloads.
@@ -83,6 +89,10 @@ public final class AuctionPrices {
         return System.currentTimeMillis()-current.received()>900_000?null:current.prices().get(key);
     }
 
+    /**
+     * Returns the mean of up to five cheapest unmodified offers, or null when
+     * absent/stale. Craft ingredients use this to avoid charging upgrades twice.
+     */
     public static Double unmodifiedQuote(String key){
         ensureFresh();Snapshot current=snapshot;
         return System.currentTimeMillis()-current.received()>900_000?null:current.unmodified().get(key);
@@ -111,6 +121,8 @@ public final class AuctionPrices {
             synchronized(HISTORY){
                 HISTORY.update(next.generation(),next.similar(),System.currentTimeMillis());
             }
+            // Publish only after the matching history update; readers must not see
+            // a fresh variant map whose first observation has not been recorded.
             snapshot=next;lastFailure="none";
             nextAttempt=System.currentTimeMillis()+REFRESH_INTERVAL;
             LOGGER.info("Loaded active BIN prices and averages for {} item identities",next.prices().size());
@@ -236,6 +248,10 @@ public final class AuctionPrices {
             &&(!auction.has("bids")||auction.getAsJsonArray("bids").isEmpty());
     }
 
+    /**
+     * Builds a market identity, not an instance ID. Pets include calculated level;
+     * supported applied upgrades are handled separately by AuctionSimilarity.
+     */
     public static String identity(CompoundTag extra){
         String id=extra.getStringOr("id","").trim().toUpperCase(Locale.ROOT);
         if(id.equals("PET"))try{

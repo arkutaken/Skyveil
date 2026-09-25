@@ -36,7 +36,7 @@ Skyveil has one canonical implementation: shared code/resources are under `src/m
 
 Gradle output belongs only in `build`. Temporary build caches or diagnostics needed to work around a local IDE lock must stay outside the repository and be removed afterward.
 
-For a guided tour of startup, event flow, thread boundaries, caches, persistence, and the main feature packages, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+Start with [the code-reading and contribution guide](docs/CODE_GUIDE.md). For startup, event flow, thread boundaries, caches, persistence, and feature packages, see [ARCHITECTURE.md](docs/ARCHITECTURE.md). Pricing rules are documented in [CRAFT_COST.md](docs/CRAFT_COST.md).
 
 ## License
 

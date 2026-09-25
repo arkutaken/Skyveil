@@ -7,6 +7,7 @@ public enum PlayerStat {
     public final String label;
     public final String icon;
     public final int color;
+    // Resources show current/maximum plus a bar; scalar stats only show a number.
     public final boolean resource;
     PlayerStat(String label,String icon,int color,boolean resource){this.label=label;this.icon=icon;this.color=color;this.resource=resource;}
 }

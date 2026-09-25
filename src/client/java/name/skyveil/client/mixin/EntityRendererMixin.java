@@ -13,6 +13,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 /** Alters only the extracted name-tag render state; server entities and their metadata remain intact. */
 @Mixin(ArmorStandRenderer.class)
 public abstract class EntityRendererMixin {
+    // Remove only the extracted label for this frame. Never delete the server's
+    // armor stand just to replace its damage text.
     @Inject(method="extractRenderState(Lnet/minecraft/world/entity/decoration/ArmorStand;Lnet/minecraft/client/renderer/entity/state/ArmorStandRenderState;F)V",at=@At("TAIL"))
     private void skyveil$compactDamageLabel(ArmorStand stand,ArmorStandRenderState state,float partialTick,CallbackInfo ci){if(SkyblockSession.isActive()&&CompactDamageManager.shouldSuppress(stand))state.nameTag=null;}
 }

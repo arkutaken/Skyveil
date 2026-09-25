@@ -6,7 +6,11 @@ import net.minecraft.nbt.NbtAccounter;
 import java.io.*;
 import java.util.*;
 
-/** One latest observed active-listing average per hour, retained for at most 72 hours. */
+/**
+ * One latest observed active-listing average per hour, retained for at most 72 hours.
+ * This mutable object is not internally synchronized: AuctionPrices holds its
+ * monitor for live reads, updates, loading, and serialization.
+ */
 public final class AuctionHistory {
     static final long HOUR=3_600_000L,WINDOW=72*HOUR;
     private final NavigableMap<Long,Observation> hours=new TreeMap<>();
@@ -18,9 +22,15 @@ public final class AuctionHistory {
         prune(now);
         if(updated<=generation)return false;
         generation=updated;
+        // Replace this hour's sample instead of weighting frequently refreshed
+        // hours more heavily than sparsely observed ones.
         hours.put(now/HOUR,new Observation(now,Map.copyOf(prices)));
         return true;
     }
+    /**
+     * Weights each observed hour equally; missing hours are not zero-price samples.
+     * The complete flag describes the age spanned, not uninterrupted coverage.
+     */
     Average average(String key,long now){
         double total=0;int count=0;long oldest=now;
         for(var observation:hours.values()){
